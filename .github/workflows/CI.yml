@@ -31,4 +31,4 @@ jobs:
           dotnet-version: 7.x
           
       - name: Restore dependencies
-        run: dotnet test
+        run: dotnet test .\Interpreter.Tests\
