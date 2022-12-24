@@ -9,3 +9,23 @@ This is my 2nd attempt. First one can be found here: https://github.com/h2oboi89
 Based on Bob Nystrom's Lox book
  - website: <a href="http://craftinginterpreters.com/">Crafting Interpreters</a>
  - github:  <a href="https://github.com/munificent/craftinginterpreters">munificent/craftinginterpreters</a>
+
+## Sections Completed
+
+TODO: Link to tags for each section
+
+### Tree-walk Interpreter
+- [ ] Scanning
+- [ ] Representing Code
+- [ ] Parsing Expressions
+- [ ] Evaluating Expressions
+- [ ] Statements and State
+- [ ] Control Flow
+- [ ] Functions
+- [ ] Resolving and Binding
+- [ ] Classes
+- [ ] Inheritance
+
+### Bytecode Virtual Machine
+
+## Deviations / Enchancements

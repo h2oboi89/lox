@@ -6,10 +6,7 @@
         {
             var scanState = new ScanState(source);
 
-            while (!scanState.IsAtEnd())
-            {
-                scanState.ScanToken();
-            }
+            scanState.Scan();
 
             return (scanState.Tokens, scanState.Errors);
         }

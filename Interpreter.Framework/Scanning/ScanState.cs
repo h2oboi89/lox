@@ -1,4 +1,6 @@
-﻿namespace Interpreter.Framework.Scanning
+﻿using System.Net.Security;
+
+namespace Interpreter.Framework.Scanning
 {
     internal class ScanState
     {
@@ -32,6 +34,16 @@
         public ScanState(string source)
         {
             this.source = source;
+        }
+
+        public void Scan()
+        {
+            while (!IsAtEnd())
+            {
+                ScanToken();
+            }
+
+            Tokens.Add(new Token(TokenType.EOF, string.Empty, line, null));
         }
 
         public bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
@@ -83,8 +95,8 @@
 
         private void AddToken(TokenType type, object? literal = null)
         {
-            var text = source.Substring(start, current);
-            Tokens.Add(new Token(type, text, literal, line));
+            var text = source[start..current];
+            Tokens.Add(new Token(type, text, line, literal));
         }
 
         private bool Match(char expected)
@@ -118,12 +130,16 @@
                 Advance();
             }
 
-            if (IsAtEnd()) Errors.Add(new(line, "Unterminated string"));
+            if (IsAtEnd())
+            {
+                Errors.Add(new(line, "Unterminated string"));
+                return;
+            }
 
             Advance(); // closing " character
 
             // time the surrounding " characters
-            var value = source.Substring(start + 1, current - 1);
+            var value = source[(start + 1)..(current - 1)];
 
             AddToken(TokenType.STRING, value);
         }
@@ -143,7 +159,7 @@
                 ConsumeNumber();
             }
 
-            AddToken(TokenType.NUMBER, double.Parse(source.Substring(start, current)));
+            AddToken(TokenType.NUMBER, double.Parse(source[start..current]));
         }
 
         private static bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
@@ -154,7 +170,7 @@
         {
             while (IsAlphaNumeric(Peek())) Advance();
 
-            var text = source.Substring(start, current);
+            var text = source[start..current];
 
             if (keyWords.TryGetValue(text, out var keyWordTokenType))
             {
