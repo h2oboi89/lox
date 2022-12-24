@@ -1,6 +1,6 @@
 ﻿namespace Interpreter.Framework.Scanning
 {
-    internal class ScanState
+    class SourceScanner
     {
         private readonly string source;
         private int start = 0;
@@ -8,33 +8,30 @@
         private int line = 1;
 
         private static readonly Dictionary<string, TokenType> keyWords = new()
-            {
-                { "and",    TokenType.AND },
-                { "class",  TokenType.CLASS },
-                { "else",   TokenType.ELSE },
-                { "false",  TokenType.FALSE },
-                { "for",    TokenType.FOR },
-                { "fun",    TokenType.FUN },
-                { "if",     TokenType.IF },
-                { "nil",    TokenType.NIL },
-                { "or",     TokenType.OR },
-                { "print",  TokenType.PRINT },
-                { "return", TokenType.RETURN },
-                { "super",  TokenType.SUPER },
-                { "this",   TokenType.THIS },
-                { "var",    TokenType.VAR },
-                { "while",  TokenType.WHILE },
-            };
-
-        public List<Token> Tokens { get; } = new();
-        public List<ScanError> Errors { get; } = new();
-
-        public ScanState(string source)
         {
-            this.source = source;
-        }
+            { "and",    TokenType.AND },
+            { "class",  TokenType.CLASS },
+            { "else",   TokenType.ELSE },
+            { "false",  TokenType.FALSE },
+            { "for",    TokenType.FOR },
+            { "fun",    TokenType.FUN },
+            { "if",     TokenType.IF },
+            { "nil",    TokenType.NIL },
+            { "or",     TokenType.OR },
+            { "print",  TokenType.PRINT },
+            { "return", TokenType.RETURN },
+            { "super",  TokenType.SUPER },
+            { "this",   TokenType.THIS },
+            { "var",    TokenType.VAR },
+            { "while",  TokenType.WHILE },
+        };
 
-        public void Scan()
+        private List<Token> Tokens { get; } = new();
+        private List<ScanError> Errors { get; } = new();
+
+        public SourceScanner(string source) { this.source = source; }
+
+        public (IEnumerable<Token> tokens, IEnumerable<ScanError> errors) Scan()
         {
             while (!IsAtEnd())
             {
@@ -42,11 +39,13 @@
             }
 
             Tokens.Add(new Token(TokenType.EOF, string.Empty, line, null));
+
+            return (Tokens, Errors);
         }
 
-        public bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
+        private bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
 
-        public void ScanToken()
+        private void ScanToken()
         {
             start = current;
             var c = Advance();
@@ -72,20 +71,7 @@
                     break;
                 case '\n': line++; break;
                 case '"': String(); break;
-                default:
-                    if (IsDigit(c))
-                    {
-                        Number();
-                    }
-                    else if (IsAlpha(c))
-                    {
-                        Identifier();
-                    }
-                    else
-                    {
-                        Errors.Add(new(line, $"Unexpected character: '{c}'"));
-                    }
-                    break;
+                default: Default(c); break;
             }
         }
 
@@ -136,10 +122,26 @@
 
             Advance(); // closing " character
 
-            // time the surrounding " characters
+            // trim the surrounding " characters
             var value = source[(start + 1)..(current - 1)];
 
             AddToken(TokenType.STRING, value);
+        }
+
+        private void Default(char c)
+        {
+            if (IsDigit(c))
+            {
+                Number();
+            }
+            else if (IsAlpha(c))
+            {
+                Identifier();
+            }
+            else
+            {
+                Errors.Add(new(line, $"Unexpected character: '{c}'"));
+            }
         }
 
         private static bool IsDigit(char c) => c > '0' && c < '9';
