@@ -29,3 +29,4 @@ TODO: Link to tags for each section
 ### Bytecode Virtual Machine
 
 ## Deviations / Enchancements
+- Reworked interpreter to facilitate testing (see https://github.com/h2oboi89/lox/tree/main/Interpreter.Tests)
