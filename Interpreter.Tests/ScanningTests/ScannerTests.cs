@@ -1,6 +1,4 @@
 ﻿using Interpreter.Framework.Scanning;
-using System;
-using System.Reflection.Metadata;
 
 namespace Interpreter.Tests.ScanningTests
 {

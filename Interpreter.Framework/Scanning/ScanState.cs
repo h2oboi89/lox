@@ -1,6 +1,4 @@
-﻿using System.Net.Security;
-
-namespace Interpreter.Framework.Scanning
+﻿namespace Interpreter.Framework.Scanning
 {
     internal class ScanState
     {
