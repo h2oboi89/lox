@@ -15,7 +15,7 @@ Based on Bob Nystrom's Lox book
 TODO: Link to tags for each section
 
 ### Tree-walk Interpreter
-- [x] Scanning
+- [x] [Scanning](https://github.com/h2oboi89/lox/releases/tag/Scanning)
 - [ ] Representing Code
 - [ ] Parsing Expressions
 - [ ] Evaluating Expressions
