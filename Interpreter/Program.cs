@@ -4,27 +4,19 @@ internal class Program
 {
     private static bool InPrompt = false;
 
-    private static readonly object syncLock = new();
-
     private static void Main(string[] args)
     {
         Interpreter.Framework.Interpreter.Out += (_, e) =>
         {
-            lock (syncLock)
-            {
-                Console.WriteLine(e.Content);
-            }
+            Console.WriteLine(e.Content);
         };
 
         Interpreter.Framework.Interpreter.Error += (_, e) =>
         {
-            lock (syncLock)
-            {
-                var originalColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Error.WriteLine(e.Content);
-                Console.ForegroundColor = originalColor;
-            }
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.Error.WriteLine(e.Content);
+            Console.ForegroundColor = originalColor;
             if (!InPrompt) Environment.Exit(65);
         };
 
