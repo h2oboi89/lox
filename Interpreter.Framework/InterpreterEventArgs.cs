@@ -1,12 +1,11 @@
-﻿namespace Interpreter.Framework
-{
-    public class InterpreterEventArgs : EventArgs
-    {
-        public readonly string Content;
+﻿namespace Interpreter.Framework;
 
-        public InterpreterEventArgs(string content)
-        {
-            Content = content;
-        }
+public class InterpreterEventArgs : EventArgs
+{
+    public readonly string Content;
+
+    public InterpreterEventArgs(string content)
+    {
+        Content = content;
     }
 }

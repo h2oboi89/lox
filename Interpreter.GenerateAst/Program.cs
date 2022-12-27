@@ -25,6 +25,8 @@ internal class Program
     private static int indentLevel = 0;
     private static string Indent() => string.Join(string.Empty, Enumerable.Repeat(INDENT, indentLevel));
 
+    private const string VISITOR = "IVisitor";
+
     private static void DefineAst(string outputDir, string baseName, IEnumerable<string> types)
     {
         using var writer = new StreamWriter(Path.Combine(outputDir, $"{baseName}.cs"));
@@ -43,7 +45,7 @@ internal class Program
         writer.WriteLine(DefineVisitor(baseName, types));
 
         writer.WriteLine();
-        writer.WriteLine($"{Indent()}public abstract T Accept<T>(Visitor<T> visitor);");
+        writer.WriteLine($"{Indent()}public abstract T Accept<T>({VISITOR}<T> visitor);");
 
         foreach (var type in types)
         {
@@ -63,7 +65,7 @@ internal class Program
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine($"{Indent()}public interface Visitor<T>");
+        sb.AppendLine($"{Indent()}public interface {VISITOR}<T>");
         sb.AppendLine($"{Indent()}{{");
         indentLevel++;
 
@@ -88,7 +90,7 @@ internal class Program
         sb.AppendLine($"{Indent()}{{");
         indentLevel++;
 
-        sb.AppendLine($"{Indent()}public override T Accept<T>(Visitor<T> visitor) => visitor.Visit{className}{baseName}(this);");
+        sb.AppendLine($"{Indent()}public override T Accept<T>({VISITOR}<T> visitor) => visitor.Visit{className}{baseName}(this);");
 
         indentLevel--;
         sb.Append($"{Indent()}}}");

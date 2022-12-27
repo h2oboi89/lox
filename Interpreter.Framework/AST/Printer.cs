@@ -1,7 +1,7 @@
 ﻿using System.Text;
 
 namespace Interpreter.Framework.AST;
-public class Printer : Expression.Visitor<string>
+public class Printer : Expression.IVisitor<string>
 {
     public string Print(Expression expression) => expression.Accept(this);
 
