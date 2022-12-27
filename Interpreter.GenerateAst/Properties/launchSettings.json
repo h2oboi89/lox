@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Interpreter.GenerateAst": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\..\\Interpreter.Framework\\AST\\"
+    }
+  }
+}

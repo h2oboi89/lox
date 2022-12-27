@@ -20,6 +20,7 @@ internal class Program
             if (!InPrompt) Environment.Exit(65);
         };
 
+        // TODO: debug argument for printing AST
         if (args.Length > 1)
         {
             Console.WriteLine("Usage: lox [script]");
