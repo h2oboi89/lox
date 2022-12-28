@@ -17,7 +17,7 @@ TODO: Link to tags for each section
 ### Tree-walk Interpreter
 - [x] Scanning : [Scanning](https://github.com/h2oboi89/lox/releases/tag/Scanning)
 - [x] Representing Code
-- [ ] Parsing Expressions
+- [x] Parsing Expressions : [Parsing](https://github.com/h2oboi89/lox/releases/tag/Parsing)
 - [ ] Evaluating Expressions
 - [ ] Statements and State
 - [ ] Control Flow
