@@ -16,7 +16,7 @@ internal class Program
             new string[] {
             "Binary   : Expression Left, Token Operator, Expression Right",
             "Grouping : Expression Expression",
-            "Literal  : Object Value",
+            "Literal  : object? Value",
             "Unary    : Token Operator, Expression Right"
         });
     }

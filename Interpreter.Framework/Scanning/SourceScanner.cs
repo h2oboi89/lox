@@ -22,6 +22,7 @@ class SourceScanner
         { "return", TokenType.RETURN },
         { "super",  TokenType.SUPER },
         { "this",   TokenType.THIS },
+        { "true",   TokenType.TRUE },
         { "var",    TokenType.VAR },
         { "while",  TokenType.WHILE },
     };
@@ -31,7 +32,7 @@ class SourceScanner
 
     public SourceScanner(string source) { this.source = source; }
 
-    public (IEnumerable<Token> tokens, IEnumerable<ScanError> errors) Scan()
+    public (IEnumerable<Token> tokens, IEnumerable<ScanError> scanErrors) Scan()
     {
         while (!IsAtEnd())
         {
@@ -43,8 +44,7 @@ class SourceScanner
         return (Tokens, Errors);
     }
 
-    private bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
-
+    #region Tokens
     private void ScanToken()
     {
         start = current;
@@ -63,6 +63,9 @@ class SourceScanner
             case ';': AddToken(TokenType.SEMICOLON); break;
             case '*': AddToken(TokenType.STAR); break;
             case '!': AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
+            case '=': AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
+            case '<': AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
+            case '>': AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
             case '/': CommentOrDivision(); break;
             case ' ':
             case '\r':
@@ -73,23 +76,6 @@ class SourceScanner
             case '"': String(); break;
             default: Default(c); break;
         }
-    }
-
-    private char Advance() => source[current++];
-
-    private void AddToken(TokenType type, object? literal = null)
-    {
-        var text = source[start..current];
-        Tokens.Add(new Token(type, text, line, literal));
-    }
-
-    private bool Match(char expected)
-    {
-        if (IsAtEnd()) return false;
-        if (source[current] != expected) return false;
-
-        current++;
-        return true;
     }
 
     private void CommentOrDivision()
@@ -104,8 +90,6 @@ class SourceScanner
         }
     }
 
-    private char Peek(int offset = 0) => IsAtEnd(offset) ? '\0' : source[current + offset];
-
     private void String()
     {
         while (Peek() != '"' && !IsAtEnd())
@@ -116,7 +100,7 @@ class SourceScanner
 
         if (IsAtEnd())
         {
-            Errors.Add(new(line, "Unterminated string"));
+            Errors.Add(new(line, "Unterminated string."));
             return;
         }
 
@@ -140,11 +124,9 @@ class SourceScanner
         }
         else
         {
-            Errors.Add(new(line, $"Unexpected character: '{c}'"));
+            Errors.Add(new(line, $"Unexpected character: '{c}'."));
         }
     }
-
-    private static bool IsDigit(char c) => c > '0' && c < '9';
 
     private void Number()
     {
@@ -162,10 +144,6 @@ class SourceScanner
         AddToken(TokenType.NUMBER, double.Parse(source[start..current]));
     }
 
-    private static bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
-
-    private static bool IsAlphaNumeric(char c) => IsAlpha(c) || IsDigit(c);
-
     private void Identifier()
     {
         while (IsAlphaNumeric(Peek())) Advance();
@@ -182,4 +160,33 @@ class SourceScanner
         }
 
     }
+    #endregion
+
+    #region Helper Methods
+    private bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
+
+    private char Advance() => source[current++];
+
+    private void AddToken(TokenType type, object? literal = null)
+    {
+        var text = source[start..current];
+        Tokens.Add(new Token(type, text, line, literal));
+    }
+
+    private bool Match(char expected)
+    {
+        if (IsAtEnd()) return false;
+        if (source[current] != expected) return false;
+
+        current++;
+        return true;
+    }
+    private char Peek(int offset = 0) => IsAtEnd(offset) ? '\0' : source[current + offset];
+
+    private static bool IsDigit(char c) => c > '0' && c < '9';
+
+    private static bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+
+    private static bool IsAlphaNumeric(char c) => IsAlpha(c) || IsDigit(c);
+    #endregion
 }

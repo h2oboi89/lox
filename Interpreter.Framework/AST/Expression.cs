@@ -23,7 +23,7 @@ public abstract record class Expression
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitGroupingExpression(this);
     }
 
-    public record class Literal(Object Value) : Expression
+    public record class Literal(object? Value) : Expression
     {
         public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLiteralExpression(this);
     }

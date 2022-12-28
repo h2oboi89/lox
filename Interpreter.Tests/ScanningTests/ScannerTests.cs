@@ -36,7 +36,7 @@ internal static class ScannerTests
     [Test]
     public static void SimpleTokens()
     {
-        var input = "() {} , . - + ; * ! != /";
+        var input = "() {} , . - + ; * ! != / = == < <= > >=";
 
         var (tokens, errors) = Scanner.ScanTokens(input);
 
@@ -44,7 +44,7 @@ internal static class ScannerTests
 
         var tokenList = tokens.ToList();
 
-        Assert.That(tokenList, Has.Count.EqualTo(14));
+        Assert.That(tokenList, Has.Count.EqualTo(20));
 
         AssertToken(tokenList, 0, TokenType.LEFT_PAREN, "(", 1);
         AssertToken(tokenList, 1, TokenType.RIGHT_PAREN, ")", 1);
@@ -59,7 +59,38 @@ internal static class ScannerTests
         AssertToken(tokenList, 10, TokenType.BANG, "!", 1);
         AssertToken(tokenList, 11, TokenType.BANG_EQUAL, "!=", 1);
         AssertToken(tokenList, 12, TokenType.SLASH, "/", 1);
+        AssertToken(tokenList, 13, TokenType.EQUAL, "=", 1);
+        AssertToken(tokenList, 14, TokenType.EQUAL_EQUAL, "==", 1);
+        AssertToken(tokenList, 15, TokenType.LESS, "<", 1);
+        AssertToken(tokenList, 16, TokenType.LESS_EQUAL, "<=", 1);
+        AssertToken(tokenList, 17, TokenType.GREATER, ">", 1);
+        AssertToken(tokenList, 18, TokenType.GREATER_EQUAL, ">=", 1);
         AssertEofToken(tokenList, 1);
+    }
+
+    [Test]
+    public static void SimpleTokenAtEnd()
+    {
+        var potentialMultiCharTokens = new List<(string, TokenType)> { 
+            ("!", TokenType.BANG),
+            ("=", TokenType.EQUAL),
+            ("<", TokenType.LESS),
+            (">", TokenType.GREATER),
+        };
+        
+        foreach(var (input, tokenType) in potentialMultiCharTokens)
+        {
+            var (tokens, errors) = Scanner.ScanTokens(input);
+
+            Assert.That(errors, Is.Empty);
+
+            var tokenList = tokens.ToList();
+
+            Assert.That(tokenList, Has.Count.EqualTo(2));
+
+            AssertToken(tokenList, 0, tokenType, input, 1);
+            AssertEofToken(tokenList, 1);
+        }
     }
 
     [Test]
@@ -87,7 +118,7 @@ internal static class ScannerTests
     [Test]
     public static void Whitespace()
     {
-        var input = " \r\n\t";
+        var input = " \r\n\t ";
 
         var (tokens, errors) = Scanner.ScanTokens(input);
 
@@ -117,7 +148,7 @@ internal static class ScannerTests
         var tokenList = tokens.ToList();
 
         Assert.That(errorList, Has.Count.EqualTo(1));
-        Assert.That(errorList[0].Message, Is.EqualTo("Unterminated string"));
+        Assert.That(errorList[0].Message, Is.EqualTo("Unterminated string."));
 
         Assert.That(tokenList, Has.Count.EqualTo(5));
         AssertStringLiteralToken(tokenList, 0, TokenType.STRING, "\"\"", 1);
@@ -162,7 +193,7 @@ internal static class ScannerTests
             and     class   else    false
             for     fun     if      nil
             or      print   return  super
-            this    var     while   foo
+            this    var     while   foo_bar
             """;
 
         var (tokens, errors) = Scanner.ScanTokens(input);
@@ -188,7 +219,7 @@ internal static class ScannerTests
         AssertToken(tokenList, 12, TokenType.THIS, "this", 4);
         AssertToken(tokenList, 13, TokenType.VAR, "var", 4);
         AssertToken(tokenList, 14, TokenType.WHILE, "while", 4);
-        AssertToken(tokenList, 15, TokenType.IDENTIFIER, "foo", 4);
+        AssertToken(tokenList, 15, TokenType.IDENTIFIER, "foo_bar", 4);
         AssertEofToken(tokenList, 4);
     }
 
@@ -203,7 +234,7 @@ internal static class ScannerTests
         var errorList = errors.ToList();
 
         Assert.That(errorList, Has.Count.EqualTo(1));
-        Assert.That(errorList[0].Message, Is.EqualTo("Unexpected character: '#'"));
+        Assert.That(errorList[0].Message, Is.EqualTo("Unexpected character: '#'."));
 
         Assert.That(tokenList, Has.Count.EqualTo(1));
         AssertEofToken(tokenList, 1);

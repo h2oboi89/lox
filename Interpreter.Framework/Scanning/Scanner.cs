@@ -2,7 +2,7 @@
 
 public static class Scanner
 {
-    public static (IEnumerable<Token> tokens, IEnumerable<ScanError> errors) ScanTokens(string source) =>
+    public static (IEnumerable<Token> tokens, IEnumerable<ScanError> scanErrors) ScanTokens(string source) =>
         new SourceScanner(source).Scan();
 }
 
