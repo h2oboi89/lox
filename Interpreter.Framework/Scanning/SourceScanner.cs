@@ -183,7 +183,7 @@ class SourceScanner
     }
     private char Peek(int offset = 0) => IsAtEnd(offset) ? '\0' : source[current + offset];
 
-    private static bool IsDigit(char c) => c > '0' && c < '9';
+    private static bool IsDigit(char c) => c >= '0' && c <= '9';
 
     private static bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 

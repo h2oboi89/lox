@@ -167,6 +167,8 @@ internal static class ScannerTests
             123.456
             .123
             123.
+            0
+            9
             """;
 
         var (tokens, errors) = Scanner.ScanTokens(input);
@@ -175,7 +177,7 @@ internal static class ScannerTests
 
         var tokenList = tokens.ToList();
 
-        Assert.That(tokenList, Has.Count.EqualTo(8));
+        Assert.That(tokenList, Has.Count.EqualTo(10));
         AssertLiteralToken(tokenList, 0, TokenType.NUMBER, "1", 1, (double)1);
         AssertLiteralToken(tokenList, 1, TokenType.NUMBER, "123", 2, (double)123);
         AssertLiteralToken(tokenList, 2, TokenType.NUMBER, "123.456", 3, 123.456);
@@ -183,7 +185,9 @@ internal static class ScannerTests
         AssertLiteralToken(tokenList, 4, TokenType.NUMBER, "123", 4, (double)123);
         AssertLiteralToken(tokenList, 5, TokenType.NUMBER, "123", 5, (double)123);
         AssertToken(tokenList, 6, TokenType.DOT, ".", 5);
-        AssertEofToken(tokenList, 5);
+        AssertLiteralToken(tokenList, 7, TokenType.NUMBER, "0", 6, (double)0);
+        AssertLiteralToken(tokenList, 8, TokenType.NUMBER, "9", 7, (double)9);
+        AssertEofToken(tokenList, 7);
     }
 
     [Test]

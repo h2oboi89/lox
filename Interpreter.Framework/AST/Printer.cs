@@ -21,7 +21,7 @@ public class Printer : Expression.IVisitor<string>
     {
         var sb = new StringBuilder();
 
-        sb.Append('(').Append(name);
+        sb.Append("( ").Append(name);
 
         foreach(var expression in expressions)
         {
@@ -29,7 +29,7 @@ public class Printer : Expression.IVisitor<string>
             sb.Append(expression.Accept(this));
         }
 
-        sb.Append(')');
+        sb.Append(" )");
 
         return sb.ToString();
     }
