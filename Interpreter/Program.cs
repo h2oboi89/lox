@@ -13,10 +13,14 @@ internal class Program
 
         Interpreter.Framework.Interpreter.Error += (_, e) =>
         {
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
             Console.Error.WriteLine(e.Content);
+            Console.ForegroundColor = originalColor;
             if (!InPrompt) Environment.Exit(65);
         };
 
+        // TODO: debug argument for printing AST
         if (args.Length > 1)
         {
             Console.WriteLine("Usage: lox [script]");

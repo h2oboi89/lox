@@ -1,8 +1,6 @@
-﻿using System.Net.Security;
-
 namespace Interpreter.Framework.Scanning;
 
-internal class ScanState
+class SourceScanner
 {
     private readonly string source;
     private int start = 0;
@@ -10,33 +8,31 @@ internal class ScanState
     private int line = 1;
 
     private static readonly Dictionary<string, TokenType> keyWords = new()
-        {
-            { "and",    TokenType.AND },
-            { "class",  TokenType.CLASS },
-            { "else",   TokenType.ELSE },
-            { "false",  TokenType.FALSE },
-            { "for",    TokenType.FOR },
-            { "fun",    TokenType.FUN },
-            { "if",     TokenType.IF },
-            { "nil",    TokenType.NIL },
-            { "or",     TokenType.OR },
-            { "print",  TokenType.PRINT },
-            { "return", TokenType.RETURN },
-            { "super",  TokenType.SUPER },
-            { "this",   TokenType.THIS },
-            { "var",    TokenType.VAR },
-            { "while",  TokenType.WHILE },
-        };
-
-    public List<Token> Tokens { get; } = new();
-    public List<ScanError> Errors { get; } = new();
-
-    public ScanState(string source)
     {
-        this.source = source;
-    }
+        { "and",    TokenType.AND },
+        { "class",  TokenType.CLASS },
+        { "else",   TokenType.ELSE },
+        { "false",  TokenType.FALSE },
+        { "for",    TokenType.FOR },
+        { "fun",    TokenType.FUN },
+        { "if",     TokenType.IF },
+        { "nil",    TokenType.NIL },
+        { "or",     TokenType.OR },
+        { "print",  TokenType.PRINT },
+        { "return", TokenType.RETURN },
+        { "super",  TokenType.SUPER },
+        { "this",   TokenType.THIS },
+        { "true",   TokenType.TRUE },
+        { "var",    TokenType.VAR },
+        { "while",  TokenType.WHILE },
+    };
 
-    public void Scan()
+    private List<Token> Tokens { get; } = new();
+    private List<ScanError> Errors { get; } = new();
+
+    public SourceScanner(string source) { this.source = source; }
+
+    public (IEnumerable<Token> tokens, IEnumerable<ScanError> scanErrors) Scan()
     {
         while (!IsAtEnd())
         {
@@ -44,11 +40,12 @@ internal class ScanState
         }
 
         Tokens.Add(new Token(TokenType.EOF, string.Empty, line, null));
+
+        return (Tokens, Errors);
     }
 
-    public bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
-
-    public void ScanToken()
+    #region Tokens
+    private void ScanToken()
     {
         start = current;
         var c = Advance();
@@ -66,6 +63,9 @@ internal class ScanState
             case ';': AddToken(TokenType.SEMICOLON); break;
             case '*': AddToken(TokenType.STAR); break;
             case '!': AddToken(Match('=') ? TokenType.BANG_EQUAL : TokenType.BANG); break;
+            case '=': AddToken(Match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL); break;
+            case '<': AddToken(Match('=') ? TokenType.LESS_EQUAL : TokenType.LESS); break;
+            case '>': AddToken(Match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER); break;
             case '/': CommentOrDivision(); break;
             case ' ':
             case '\r':
@@ -74,38 +74,8 @@ internal class ScanState
                 break;
             case '\n': line++; break;
             case '"': String(); break;
-            default:
-                if (IsDigit(c))
-                {
-                    Number();
-                }
-                else if (IsAlpha(c))
-                {
-                    Identifier();
-                }
-                else
-                {
-                    Errors.Add(new(line, $"Unexpected character: '{c}'"));
-                }
-                break;
+            default: Default(c); break;
         }
-    }
-
-    private char Advance() => source[current++];
-
-    private void AddToken(TokenType type, object? literal = null)
-    {
-        var text = source[start..current];
-        Tokens.Add(new Token(type, text, line, literal));
-    }
-
-    private bool Match(char expected)
-    {
-        if (IsAtEnd()) return false;
-        if (source[current] != expected) return false;
-
-        current++;
-        return true;
     }
 
     private void CommentOrDivision()
@@ -120,8 +90,6 @@ internal class ScanState
         }
     }
 
-    private char Peek(int offset = 0) => IsAtEnd(offset) ? '\0' : source[current + offset];
-
     private void String()
     {
         while (Peek() != '"' && !IsAtEnd())
@@ -132,19 +100,33 @@ internal class ScanState
 
         if (IsAtEnd())
         {
-            Errors.Add(new(line, "Unterminated string"));
+            Errors.Add(new(line, "Unterminated string."));
             return;
         }
 
         Advance(); // closing " character
 
-        // time the surrounding " characters
+        // trim the surrounding " characters
         var value = source[(start + 1)..(current - 1)];
 
         AddToken(TokenType.STRING, value);
     }
 
-    private static bool IsDigit(char c) => c > '0' && c < '9';
+    private void Default(char c)
+    {
+        if (IsDigit(c))
+        {
+            Number();
+        }
+        else if (IsAlpha(c))
+        {
+            Identifier();
+        }
+        else
+        {
+            Errors.Add(new(line, $"Unexpected character: '{c}'."));
+        }
+    }
 
     private void Number()
     {
@@ -162,10 +144,6 @@ internal class ScanState
         AddToken(TokenType.NUMBER, double.Parse(source[start..current]));
     }
 
-    private static bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
-
-    private static bool IsAlphaNumeric(char c) => IsAlpha(c) || IsDigit(c);
-
     private void Identifier()
     {
         while (IsAlphaNumeric(Peek())) Advance();
@@ -182,4 +160,33 @@ internal class ScanState
         }
 
     }
+    #endregion
+
+    #region Helper Methods
+    private bool IsAtEnd(int offset = 0) => (current + offset) >= source.Length;
+
+    private char Advance() => source[current++];
+
+    private void AddToken(TokenType type, object? literal = null)
+    {
+        var text = source[start..current];
+        Tokens.Add(new Token(type, text, line, literal));
+    }
+
+    private bool Match(char expected)
+    {
+        if (IsAtEnd()) return false;
+        if (source[current] != expected) return false;
+
+        current++;
+        return true;
+    }
+    private char Peek(int offset = 0) => IsAtEnd(offset) ? '\0' : source[current + offset];
+
+    private static bool IsDigit(char c) => c >= '0' && c <= '9';
+
+    private static bool IsAlpha(char c) => (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+
+    private static bool IsAlphaNumeric(char c) => IsAlpha(c) || IsDigit(c);
+    #endregion
 }
