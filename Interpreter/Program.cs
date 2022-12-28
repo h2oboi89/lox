@@ -51,7 +51,7 @@ internal class Program
         {
             Console.Write("> ");
             var line = Console.ReadLine();
-            if (string.IsNullOrEmpty(line)) break;
+            if (string.IsNullOrEmpty(line)) continue;
             Interpreter.Framework.Interpreter.Run(line);
         }
     }
