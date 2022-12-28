@@ -18,6 +18,7 @@ TODO: Link to tags for each section
 - [x] Scanning : [Scanning](https://github.com/h2oboi89/lox/releases/tag/Scanning)
 - [x] Representing Code
 - [x] Parsing Expressions : [Parsing](https://github.com/h2oboi89/lox/releases/tag/Parsing)
+  - this tag fixes some missing code that should have been in Scanning tag.
 - [ ] Evaluating Expressions
 - [ ] Statements and State
 - [ ] Control Flow
