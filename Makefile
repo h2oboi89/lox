@@ -43,6 +43,10 @@ debug: build tdd
 release: CONFIG := Release
 release: build tdd
 
+.PHONY: run
+run: release
+	.\Interpreter\bin\Release\net7.0\lox.exe
+
 .PHONY: clean
 clean:
 	dotnet clean --nologo -v quiet
