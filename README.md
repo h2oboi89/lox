@@ -2,7 +2,7 @@
 
 ## Summary
 
-Lox interpreter written in C# (.NET Framework 7)
+Lox interpreter written in C# (.NET 7)
 
 This is my 2nd attempt. First one can be found here: https://github.com/h2oboi89/lox.archive
 
@@ -12,12 +12,15 @@ Based on Bob Nystrom's Lox book
 
 ## Sections Completed
 
-TODO: Link to tags for each section
+Links are organized as [online book link] : [source code tag link].
+
+NOTE: some sections do not contain a tag link as they only represent a partial section of code that did not lend itself to testing.
 
 ### Tree-walk Interpreter
-- [x] Scanning : [Scanning](https://github.com/h2oboi89/lox/releases/tag/Scanning)
-- [x] Representing Code
-- [x] Parsing Expressions : [Parsing](https://github.com/h2oboi89/lox/releases/tag/Parsing)
+
+- [x] [Scanning](http://craftinginterpreters.com/scanning.html) : [Scanning](https://github.com/h2oboi89/lox/releases/tag/Scanning)
+- [x] [Representing Code](http://craftinginterpreters.com/representing-code.html)
+- [x] [Parsing Expressions](http://craftinginterpreters.com/parsing-expressions.html) : [Parsing](https://github.com/h2oboi89/lox/releases/tag/Parsing)
   - this tag fixes some missing code that should have been in Scanning tag.
 - [ ] Evaluating Expressions
 - [ ] Statements and State
@@ -30,4 +33,4 @@ TODO: Link to tags for each section
 ### Bytecode Virtual Machine
 
 ## Deviations / Enchancements
-- Reworked interpreter to facilitate testing (see https://github.com/h2oboi89/lox/tree/main/Interpreter.Tests)
+- Reworked interpreter to facilitate testing (see [Interpreter.Tests](https://github.com/h2oboi89/lox/tree/main/Interpreter.Tests))
