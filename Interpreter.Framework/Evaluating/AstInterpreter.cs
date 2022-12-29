@@ -119,6 +119,8 @@ public class AstInterpreter : Expression.IVisitor<object>
     {
         if (value is double dbl) return dbl.ToString();
 
+        if (value is bool boolean) return boolean.ToString().ToLower();
+
         return value?.ToString() ?? "nil";
     }
 }

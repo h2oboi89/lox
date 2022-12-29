@@ -6,7 +6,6 @@ using Interpreter.Framework.Scanning;
 namespace Interpreter.Tests.EvaluatingTests;
 internal static class AstInterpreterTests
 {
-    // TODO: lower case True and False
     [Test]
     public static void BinaryExpressions_Numeric()
     {
@@ -16,12 +15,12 @@ internal static class AstInterpreterTests
             ( "2 + 3", "5" ),
             ( "10 / 4", "2.5" ),
             ( "6 * 7", "42"),
-            ( "3.14 > 2.72", "True" ),
-            ( "1 >= 1", "True" ),
-            ( "5 < 2", "False" ),
-            ( "5 <= 6", "True" ),
-            ( "1 != 1", "False" ),
-            ( "1 == 1", "True" ),
+            ( "3.14 > 2.72", "true" ),
+            ( "1 >= 1", "true" ),
+            ( "5 < 2", "false" ),
+            ( "5 <= 6", "true" ),
+            ( "1 != 1", "false" ),
+            ( "1 == 1", "true" ),
             ( "1 / 3", "0.3333333333333333")
         };
 
@@ -33,14 +32,14 @@ internal static class AstInterpreterTests
     {
         var inputs = new List<(string, string)>
         {
-            ( "nil != nil", "False" ),
-            ( "nil == nil", "True" ),
-            ( "nil == 1", "False" ),
-            ( "nil != 1", "True" ),
-            ( "1 != nil", "True" ),
-            ( "1 == nil", "False" ),
-            ( """ "foo" == "bar" """, "False" ),
-            ( """ "foo" != "bar" """, "True" ),
+            ( "nil != nil", "false" ),
+            ( "nil == nil", "true" ),
+            ( "nil == 1", "false" ),
+            ( "nil != 1", "true" ),
+            ( "1 != nil", "true" ),
+            ( "1 == nil", "false" ),
+            ( """ "foo" == "bar" """, "false" ),
+            ( """ "foo" != "bar" """, "true" ),
         };
 
         AssertInputsEvaluateToOutputs(inputs);
@@ -130,12 +129,12 @@ internal static class AstInterpreterTests
         var inputs = new List<(string, string)>
         {
             ( "5 + -1", "4" ),
-            ( "!true", "False" ),
-            ( "!false", "True" ),
-            ( "!nil", "True" ),
-            ( "!0", "False" ),
-            ( "!1", "False" ),
-            ( """ !"foo" """, "False")
+            ( "!true", "false" ),
+            ( "!false", "true" ),
+            ( "!nil", "true" ),
+            ( "!0", "false" ),
+            ( "!1", "false" ),
+            ( """ !"foo" """, "false")
         };
 
         AssertInputsEvaluateToOutputs(inputs);
