@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using static Interpreter.Framework.Interpreter;
+using static Interpreter.Framework.InterpreterErrorEventArgs;
 
 internal class Program
 {
@@ -6,21 +8,43 @@ internal class Program
 
     private static void Main(string[] args)
     {
-        Interpreter.Framework.Interpreter.Out += (_, e) =>
+        Out += (_, e) =>
         {
             Console.WriteLine(e.Content);
         };
 
-        Interpreter.Framework.Interpreter.Error += (_, e) =>
+        Error += (_, e) =>
         {
             var originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Error.WriteLine(e.Content);
             Console.ForegroundColor = originalColor;
-            if (!InPrompt) Environment.Exit(65);
+            if (!InPrompt)
+            {
+                var exitCode = e.Error switch
+                {
+                    ErrorType.ScanError or ErrorType.ParseError => 65,
+                    ErrorType.RuntimeError => 70,
+                    _ => 0,
+                };
+
+                Environment.Exit(exitCode);
+            }
         };
 
-        // TODO: debug argument for printing AST
+        if (System.Diagnostics.Debugger.IsAttached)
+        {
+            const string DEBUG_LOG = "./debug.log";
+
+            File.Create(DEBUG_LOG).Close();
+
+            Debug += (_, e) =>
+            {
+                System.Diagnostics.Debug.WriteLine(e.Content);
+                File.AppendAllText(DEBUG_LOG, $"{e.Content}{Environment.NewLine}");
+            };
+        }
+
         if (args.Length > 1)
         {
             Console.WriteLine("Usage: lox [script]");
@@ -36,10 +60,7 @@ internal class Program
         }
     }
 
-    static void RunFile(string path)
-    {
-        Interpreter.Framework.Interpreter.Run(File.ReadAllText(path));
-    }
+    static void RunFile(string path) => Run(File.ReadAllText(path));
 
     static void RunPrompt()
     {
@@ -50,9 +71,7 @@ internal class Program
         while (true)
         {
             Console.Write("> ");
-            var line = Console.ReadLine();
-            if (string.IsNullOrEmpty(line)) continue;
-            Interpreter.Framework.Interpreter.Run(line);
+            Run(Console.ReadLine());
         }
     }
 }

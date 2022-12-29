@@ -1,30 +1,39 @@
 ﻿using Interpreter.Framework.AST;
+using Interpreter.Framework.Evaluating;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
+using static Interpreter.Framework.InterpreterErrorEventArgs;
 
 namespace Interpreter.Framework;
 
 public static class Interpreter
 {
-    private static readonly Printer printer = new Printer();
+    private static readonly Printer printer = new();
 
-    public static void Run(string source)
+    private static readonly AstInterpreter interpreter = new();
+
+    public static void Run(string? source)
     {
+        if (string.IsNullOrEmpty(source))
+        {
+            return;
+        }
+
         var (tokens, scanErrors) = Scanner.ScanTokens(source);
 
         if (scanErrors.Any())
         {
             foreach (var error in scanErrors)
             {
-                Report(error.Line, string.Empty, error.Message);
+                Report(ErrorType.ScanError, line: error.Line, where: string.Empty, message: error.Message);
             }
             return;
         }
 
-        // TODO: if debug
+        RaiseDebug("Tokens:");
         foreach (var token in tokens)
         {
-            Out?.Invoke(typeof(Interpreter), new InterpreterEventArgs(token.ToString()));
+            RaiseDebug($"- {token}");
         }
 
         var (expression, parseErrors) = Parser.Parse(tokens);
@@ -37,24 +46,38 @@ public static class Interpreter
                 var line = token.Line;
                 var where = token.Type == TokenType.EOF ? " at end" : $" at '{token.Lexeme}'";
 
-                Report(line, where, error.Message);
+                Report(ErrorType.ParseError, line: line, where: where, message: error.Message);
             }
             return;
         }
 
-        // TODO if debug
-        if (expression != null)
+        if (expression == null) return;
+
+        RaiseDebug($"AST: {printer.Print(expression)}");
+
+        var (value, runtimeError) = interpreter.Execute(expression);
+
+        if (runtimeError != null)
         {
-            Out?.Invoke(typeof(Interpreter), new InterpreterEventArgs(printer.Print(expression)));
+            var errorMessage = $"{runtimeError.Message}{Environment.NewLine}[line {runtimeError.Token.Line}]";
+
+            RaiseError(ErrorType.RuntimeError, errorMessage);
+            return;
         }
+
+        RaiseOut(value);
+        return;
     }
 
-    private static void Report(int line, string where, string message)
-    {
-        Error?.Invoke(typeof(Interpreter), new InterpreterEventArgs($"[line {line}] Error{where}: {message}"));
-    }
+    private static void Report(ErrorType error, int line, string where, string message) =>
+        RaiseError(error, $"[line {line}] Error{where}: {message}");
 
-    public static event EventHandler<InterpreterEventArgs>? Out;
+    public static event EventHandler<InterpreterOutEventArgs>? Debug;
+    private static void RaiseDebug(string message) => Debug?.Invoke(typeof(Interpreter), new InterpreterOutEventArgs(message));
 
-    public static event EventHandler<InterpreterEventArgs>? Error;
+    public static event EventHandler<InterpreterOutEventArgs>? Out;
+    private static void RaiseOut(string message) => Out?.Invoke(typeof(Interpreter), new InterpreterOutEventArgs(message));
+
+    public static event EventHandler<InterpreterErrorEventArgs>? Error;
+    private static void RaiseError(ErrorType error, string message) => Error?.Invoke(typeof(Interpreter), new InterpreterErrorEventArgs(error, message));
 }

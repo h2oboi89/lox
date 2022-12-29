@@ -1,10 +1,5 @@
 ﻿using Interpreter.Framework.AST;
 using Interpreter.Framework.Scanning;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Interpreter.Framework.Parsing;
 public static class Parser
