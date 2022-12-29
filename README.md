@@ -22,7 +22,7 @@ NOTE: some sections do not contain a tag link as they only represent a partial s
 - [x] [Representing Code](http://craftinginterpreters.com/representing-code.html)
 - [x] [Parsing Expressions](http://craftinginterpreters.com/parsing-expressions.html) : [Parsing](https://github.com/h2oboi89/lox/releases/tag/Parsing)
   - this tag fixes some missing code that should have been in Scanning tag.
-- [ ] Evaluating Expressions
+- [x] [Evaluating Expressions](http://craftinginterpreters.com/parsing-expressions.html) : [EvaluatingExpressions](https://github.com/h2oboi89/lox/releases/tag/EvalulatingExpressions)
 - [ ] Statements and State
 - [ ] Control Flow
 - [ ] Functions
