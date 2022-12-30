@@ -1,17 +1,22 @@
 ﻿# Lox Grammar
 
+## Top level
 ```
 program        → statement* EOF ;
+```
 
-# Statements
+## Statements
+```
 statement      → exprStmt
                | printStmt ;
 
 exprStmt       → expression ";" ;
 
 printStmt      → "print" expression ";" ;
+```
 
-# Expressions
+## Expressions
+```
 expression     → equality ;
 
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
