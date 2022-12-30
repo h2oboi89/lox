@@ -5,13 +5,20 @@ public abstract record class Expression
 {
     public interface IVisitor<T>
     {
+        T VisitAssignmentExpression(AssignmentExpression expression);
         T VisitBinaryExpression(BinaryExpression expression);
         T VisitGroupingExpression(GroupingExpression expression);
         T VisitLiteralExpression(LiteralExpression expression);
         T VisitUnaryExpression(UnaryExpression expression);
+        T VisitVariableExpression(VariableExpression expression);
     }
 
     public abstract T Accept<T>(IVisitor<T> visitor);
+}
+
+public record class AssignmentExpression(Token Name, Expression Value) : Expression
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitAssignmentExpression(this);
 }
 
 public record class BinaryExpression(Expression Left, Token Operator, Expression Right) : Expression
@@ -32,4 +39,9 @@ public record class LiteralExpression(object? Value) : Expression
 public record class UnaryExpression(Token Operator, Expression Right) : Expression
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitUnaryExpression(this);
+}
+
+public record class VariableExpression(Token Name) : Expression
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVariableExpression(this);
 }

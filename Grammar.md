@@ -2,13 +2,21 @@
 
 ## Top level
 ```
-program        → statement* EOF ;
+program        → declaration* EOF ;
 ```
 
 ## Statements
 ```
+declaration    → varDecl
+               | statement ;
+
+varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;               
+
 statement      → exprStmt
-               | printStmt ;
+               | printStmt 
+               | block ;
+
+block          → "{" declaration* "}" ;
 
 exprStmt       → expression ";" ;
 
@@ -17,7 +25,10 @@ printStmt      → "print" expression ";" ;
 
 ## Expressions
 ```
-expression     → equality ;
+expression     → assignment ;
+
+assignment     → INDENTIFIER "=" assignment
+               | equality ;
 
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 
@@ -35,5 +46,6 @@ primary        → NUMBER
                | "true" 
                | "false" 
                | "nil" 
-               | "(" expression ")" ;
+               | "(" expression ")" 
+               | IDENTIFIER ;
 ```

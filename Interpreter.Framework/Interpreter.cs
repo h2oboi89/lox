@@ -1,5 +1,4 @@
-﻿using Interpreter.Framework.AST;
-using Interpreter.Framework.Evaluating;
+﻿using Interpreter.Framework.Evaluating;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
 using static Interpreter.Framework.InterpreterErrorEventArgs;
@@ -8,12 +7,19 @@ namespace Interpreter.Framework;
 
 public static class Interpreter
 {
-    private static readonly Printer printer = new();
-
     private static readonly AstInterpreter interpreter = new();
+    private static bool initialized = false;
+
+    private static void Initialize()
+    {
+        interpreter.Out += (_, e) => RaiseOut(e.Content);
+        initialized= true;
+    }
 
     public static void Run(string? source)
     {
+        if (!initialized) Initialize();
+
         if (string.IsNullOrEmpty(source))
         {
             return;
@@ -36,7 +42,7 @@ public static class Interpreter
             RaiseDebug($"- {token}");
         }
 
-        var (expression, parseErrors) = Parser.Parse(tokens);
+        var (statements, parseErrors) = Parser.Parse(tokens);
 
         if (parseErrors.Any())
         {
@@ -51,21 +57,18 @@ public static class Interpreter
             return;
         }
 
-        if (expression == null) return;
+        //RaiseDebug($"AST: {printer.Print(statements)}");
 
-        RaiseDebug($"AST: {printer.Print(expression)}");
-
-        var (value, runtimeError) = interpreter.Execute(expression);
+        var runtimeError = interpreter.Interpret(statements);
 
         if (runtimeError != null)
         {
-            var errorMessage = $"{runtimeError.Message}{Environment.NewLine}[line {runtimeError.Token.Line}]";
+            var errorMessage = $"{runtimeError.Message}{System.Environment.NewLine}[line {runtimeError.Token.Line}]";
 
             RaiseError(ErrorType.RuntimeError, errorMessage);
             return;
         }
 
-        RaiseOut(value);
         return;
     }
 

@@ -4,10 +4,13 @@ using Interpreter.Framework.Scanning;
 namespace Interpreter.Framework.Parsing;
 public static class Parser
 {
-    public static (Expression? expression, IEnumerable<ParseError> parseErrors) Parse(IEnumerable<Token> tokens) =>
+    public static (IEnumerable<Statement>, IEnumerable<ParseError> parseErrors) Parse(IEnumerable<Token> tokens) =>
         new TokenParser(tokens).Parse();
 }
 
-public record ParseError(Token Token, string Message);
+public class ParseError : Exception
+{
+    public readonly Token Token;
 
-internal class ParsingException : Exception { }
+    public ParseError(Token token, string message) : base(message) { Token = token; }
+}

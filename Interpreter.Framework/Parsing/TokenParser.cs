@@ -15,20 +15,119 @@ internal class TokenParser
     }
 
     #region Grammar
-    public (Expression? expression, IEnumerable<ParseError> errors) Parse()
+    public (IEnumerable<Statement> expression, IEnumerable<ParseError> parseErrors) Parse()
     {
-        Expression? expression = null;
+        List<Statement> statements = new();
 
-        try
+        while (!IsAtEnd())
         {
-            expression = Expression();
-        }
-        catch (ParsingException) { }
+            var statement = Declaration();
 
-        return (expression, Errors);
+            if (statement != null)
+            {
+                statements.Add(statement);
+            }
+        }
+
+        return (statements, Errors);
     }
 
-    private Expression Expression() => Equality();
+    private Statement? Declaration()
+    {
+        try
+        {
+            return Match(TokenType.VAR) ? VariableDeclaration() : Statement();
+        }
+        catch (ParseError error)
+        {
+            Errors.Add(error);
+            Synchronize();
+            return null;
+        }
+    }
+
+    public Statement VariableDeclaration()
+    {
+        var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+        Expression? initializer = null;
+        if (Match(TokenType.EQUAL))
+        {
+            initializer = Expression();
+        }
+
+        ConsumeSemicolon("variable declaration");
+
+        return new VariableStatement(name, initializer);
+    }
+
+    private Statement Statement()
+    {
+        if (Match(TokenType.PRINT)) return PrintStatement();
+
+        if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
+
+        return ExpressionStatement();
+    }
+
+    private Statement PrintStatement()
+    {
+        var value = Expression();
+
+        ConsumeSemicolon("value");
+
+        return new PrintStatement(value);
+    }
+
+    private Statement ExpressionStatement()
+    {
+        var expression = Expression();
+
+        ConsumeSemicolon("expression");
+
+        return new ExpressionStatement(expression);
+    }
+
+    private List<Statement> Block()
+    {
+        var statements = new List<Statement>();
+
+        while(!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+        {
+            var statement = Declaration();
+
+            if (statement != null)
+            {
+                statements.Add(statement);
+            }
+        }
+
+        ConsumeCharacter(TokenType.RIGHT_BRACE, '}', "block");
+
+        return statements;
+    }
+
+    private Expression Expression() => Assignment();
+
+    private Expression Assignment()
+    {
+        var expression = Equality();
+
+        if (Match(TokenType.EQUAL))
+        {
+            var equals = Previous();
+            var value = Assignment();
+
+            if (expression is VariableExpression variableExpression)
+            {
+                return new AssignmentExpression(variableExpression.Name, value);
+            }
+
+            throw new ParseError(equals, "Invalid assignment target.");
+        }
+
+        return expression;
+    }
 
     private Expression Equality()
     {
@@ -106,14 +205,16 @@ internal class TokenParser
 
         if (Match(TokenType.NUMBER, TokenType.STRING)) return new LiteralExpression(Previous().Literal);
 
+        if (Match(TokenType.IDENTIFIER)) return new VariableExpression(Previous());
+
         if (Match(TokenType.LEFT_PAREN))
         {
             var expression = Expression();
-            Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "expression");
             return new GroupingExpression(expression);
         }
 
-        throw Error(Peek(), "Expect expression.");
+        throw new ParseError(Peek(), "Expect expression.");
     }
     #endregion
 
@@ -156,14 +257,12 @@ internal class TokenParser
     {
         if (Check(expected)) return Advance();
 
-        throw Error(Peek(), errorMessage);
+        throw new ParseError(Peek(), errorMessage);
     }
 
-    private ParsingException Error(Token token, string errorMessage)
-    {
-        Errors.Add(new ParseError(token, errorMessage));
-        return new ParsingException();
-    }
+    private void ConsumeCharacter(TokenType token, char expected, string previous) => Consume(token, $"Expect '{expected}' after {previous}.");
+
+    private void ConsumeSemicolon(string previous) => ConsumeCharacter(TokenType.SEMICOLON, ';', previous);
 
     private void Synchronize()
     {
