@@ -18,7 +18,7 @@ public class AstInterpreter : Expression.IVisitor<object>
         }
     }
 
-    public object VisitBinaryExpression(Expression.Binary expression)
+    public object VisitBinaryExpression(BinaryExpression expression)
     {
         var left = Evaluate(expression.Left);
         var right = Evaluate(expression.Right);
@@ -60,11 +60,11 @@ public class AstInterpreter : Expression.IVisitor<object>
         }
     }
 
-    public object VisitGroupingExpression(Expression.Grouping expression) => Evaluate(expression.Expression);
+    public object VisitGroupingExpression(GroupingExpression expression) => Evaluate(expression.Expression);
 
-    public object VisitLiteralExpression(Expression.Literal expression) => expression.Value;
+    public object VisitLiteralExpression(LiteralExpression expression) => expression.Value;
 
-    public object VisitUnaryExpression(Expression.Unary expression)
+    public object VisitUnaryExpression(UnaryExpression expression)
     {
         var right = Evaluate(expression.Right);
 

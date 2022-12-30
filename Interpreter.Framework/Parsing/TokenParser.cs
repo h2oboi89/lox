@@ -38,7 +38,7 @@ internal class TokenParser
         {
             var op = Previous();
             var right = Comparison();
-            expression = new Expression.Binary(expression, op, right);
+            expression = new BinaryExpression(expression, op, right);
         }
 
         return expression;
@@ -52,7 +52,7 @@ internal class TokenParser
         {
             var op = Previous();
             var right = Term();
-            expression = new Expression.Binary(expression, op, right);
+            expression = new BinaryExpression(expression, op, right);
         }
 
         return expression;
@@ -66,7 +66,7 @@ internal class TokenParser
         {
             var op = Previous();
             var right = Factor();
-            expression = new Expression.Binary(expression, op, right);
+            expression = new BinaryExpression(expression, op, right);
         }
 
         return expression;
@@ -80,7 +80,7 @@ internal class TokenParser
         {
             var op = Previous();
             var right = Unary();
-            expression = new Expression.Binary(expression, op, right);
+            expression = new BinaryExpression(expression, op, right);
         }
 
         return expression;
@@ -92,7 +92,7 @@ internal class TokenParser
         {
             var op = Previous();
             var right = Unary();
-            return new Expression.Unary(op, right);
+            return new UnaryExpression(op, right);
         }
 
         return Primary();
@@ -100,17 +100,17 @@ internal class TokenParser
 
     private Expression Primary()
     {
-        if (Match(TokenType.FALSE)) return new Expression.Literal(false);
-        if (Match(TokenType.TRUE)) return new Expression.Literal(true);
-        if (Match(TokenType.NIL)) return new Expression.Literal(null);
+        if (Match(TokenType.FALSE)) return new LiteralExpression(false);
+        if (Match(TokenType.TRUE)) return new LiteralExpression(true);
+        if (Match(TokenType.NIL)) return new LiteralExpression(null);
 
-        if (Match(TokenType.NUMBER, TokenType.STRING)) return new Expression.Literal(Previous().Literal);
+        if (Match(TokenType.NUMBER, TokenType.STRING)) return new LiteralExpression(Previous().Literal);
 
         if (Match(TokenType.LEFT_PAREN))
         {
             var expression = Expression();
             Consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
-            return new Expression.Grouping(expression);
+            return new GroupingExpression(expression);
         }
 
         throw Error(Peek(), "Expect expression.");

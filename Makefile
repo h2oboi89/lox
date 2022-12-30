@@ -43,6 +43,10 @@ debug: build tdd
 release: CONFIG := Release
 release: build tdd
 
+.PHONY: ast
+ast: release
+	.\Interpreter.GenerateAst\bin\Release\net7.0\generate_ast.exe .\Interpreter.Framework\AST\
+
 .PHONY: run
 run: release
 	.\Interpreter\bin\Release\net7.0\lox.exe
