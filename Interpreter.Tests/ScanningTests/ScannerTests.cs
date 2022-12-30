@@ -171,14 +171,65 @@ internal static class ScannerTests
         AssertInputsGenerateErrors(inputs);
     }
 
+    [Test]
+    public static void MultilineInput()
+    {
+        var input = """
+        var a = "before";
+        print a; // "before".
+        var a = "after";
+        print a; // "after".
+
+        var a = 1;
+        var b = 2;
+        print a + b;
+        """;
+
+        var expected = """
+        1 VAR var
+        1 IDENTIFIER a
+        1 EQUAL =
+        1 STRING "before" before
+        1 SEMICOLON ;
+        2 PRINT print
+        2 IDENTIFIER a
+        2 SEMICOLON ;
+        3 VAR var
+        3 IDENTIFIER a
+        3 EQUAL =
+        3 STRING "after" after
+        3 SEMICOLON ;
+        4 PRINT print
+        4 IDENTIFIER a
+        4 SEMICOLON ;
+        6 VAR var
+        6 IDENTIFIER a
+        6 EQUAL =
+        6 NUMBER 1 1
+        6 SEMICOLON ;
+        7 VAR var
+        7 IDENTIFIER b
+        7 EQUAL =
+        7 NUMBER 2 2
+        7 SEMICOLON ;
+        8 PRINT print
+        8 IDENTIFIER a
+        8 PLUS +
+        8 IDENTIFIER b
+        8 SEMICOLON ;
+        """;
+
+        AssertInputGeneratesProperTokens(input, expected, 8, Environment.NewLine);
+    }
+
     #region Helper Methods
-    private static void AssertInputGeneratesProperTokens(string input, string expected, int finalLine = 1)
+    private static void AssertInputGeneratesProperTokens(string input, string expected, int finalLine = 1, string joiner = " ")
     {
         var (tokens, scanErrors) = Scanner.ScanTokens(input);
 
         Assert.That(scanErrors, Is.Empty);
 
-        Assert.That(JoinTokens(tokens, " "), Is.EqualTo($"{expected} {finalLine} EOF"));
+        Assert.That(JoinTokens(tokens, joiner), Is.EqualTo($"{expected}{joiner}{finalLine} EOF"));
     }
 
     private static void AssertInputsGenerateProperTokens(List<(string input, string expected)> inputs, int finalLine = 1)
