@@ -1,36 +1,101 @@
 ﻿using System.Text;
 
 namespace Interpreter.Framework.AST;
-public class Printer : Expression.IVisitor<string>
+public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 {
-    public string Print(Expression expression) => expression.Accept(this);
+    public string Print(IEnumerable<Statement> statements)
+    {
+        var sb = new StringBuilder();
 
-    public string VisitBinaryExpression(Expression.Binary expression) =>
+        foreach (var statement in statements)
+        {
+            sb.Append(statement.Accept(this));
+        }
+
+        return sb.ToString();
+    }
+
+    #region Expressions
+    public string VisitAssignmentExpression(AssignmentExpression expression) =>
+        Parenthesize($"{expression.Name.Lexeme} =", expression.Value);
+
+    public string VisitBinaryExpression(BinaryExpression expression) =>
         Parenthesize(expression.Operator.Lexeme, expression.Left, expression.Right);
 
-    public string VisitGroupingExpression(Expression.Grouping expression) =>
+    public string VisitGroupingExpression(GroupingExpression expression) =>
         Parenthesize("group", expression.Expression);
 
-    public string VisitLiteralExpression(Expression.Literal expression) =>
-        Parenthesize(expression.Value?.ToString() ?? "nil");
+    public string VisitLiteralExpression(LiteralExpression expression)
+    {
+        var name = Utilities.Stringify(expression.Value);
 
-    public string VisitUnaryExpression(Expression.Unary expression) =>
+        if (expression.Value is string) name = $"\"{name}\"";
+
+        return Parenthesize(name);
+    }
+
+    public string VisitUnaryExpression(UnaryExpression expression) =>
         Parenthesize(expression.Operator.Lexeme, expression.Right);
 
+    public string VisitVariableExpression(VariableExpression expression) =>
+        Parenthesize(expression.Name.Lexeme);
+    #endregion
+
+    #region Statements
+    public string VisitPrintStatement(PrintStatement statement) =>
+        Parenthesize("print", statement.Expression);
+
+    public string VisitBlockStatement(BlockStatement statement) =>
+        Parenthesize("block", statement.Statements);
+
+    public string VisitExpressionStatement(ExpressionStatement statement) =>
+        Parenthesize("expression", statement.Expression);
+
+    public string VisitVariableStatement(VariableStatement statement) =>
+        Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
+    #endregion
+
+    #region Helper Methods
     private string Parenthesize(string name, params Expression[] expressions)
     {
         var sb = new StringBuilder();
 
-        sb.Append("( ").Append(name);
+        sb.AppendLine($"{Indent()}( {name}");
 
-        foreach(var expression in expressions)
+        indentLevel++;
+        foreach (var expression in expressions)
         {
-            sb.Append(' ');
-            sb.Append(expression.Accept(this));
+            sb.AppendLine(expression.Accept(this));
         }
+        indentLevel--;
 
-        sb.Append(" )");
+        sb.Append($"{Indent()})");
 
         return sb.ToString();
     }
+
+    private string Parenthesize(string name, IEnumerable<Statement> statements)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"{Indent()}( {name}");
+
+        indentLevel++;
+        foreach (var statement in statements)
+        {
+            sb.AppendLine(statement.Accept(this));
+        }
+        indentLevel--;
+
+        sb.Append($"{Indent()})");
+
+        return sb.ToString();
+    }
+
+    private string Parenthesize(string name) => $"{Indent()}( {name} )";
+
+    private const string INDENT = "    ";
+    private int indentLevel = 0;
+    private string Indent() => string.Join(string.Empty, Enumerable.Repeat(INDENT, indentLevel));
+    #endregion
 }

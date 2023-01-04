@@ -12,13 +12,29 @@ internal class Program
 
         var outputDir = args[0];
 
-        DefineAst(outputDir, "Expression",
-            new string[] {
-            "Binary   : Expression Left, Token Operator, Expression Right",
-            "Grouping : Expression Expression",
-            "Literal  : object? Value",
-            "Unary    : Token Operator, Expression Right"
-        });
+        DefineAst(outputDir,
+            "Expression",
+            new string[]
+            {
+                "Assignment : Token Name, Expression Value",
+                "Binary     : Expression Left, Token Operator, Expression Right",
+                "Grouping   : Expression Expression",
+                "Literal    : object? Value",
+                "Unary      : Token Operator, Expression Right",
+                "Variable   : Token Name",
+            }
+        );
+
+        DefineAst(outputDir,
+            "Statement",
+            new string[]
+            {
+                "Block      : List<Statement> Statements",
+                "Expression : Expression Expression",
+                "Print      : Expression Expression",
+                "Variable   : Token Name, Expression Initializer",
+            }
+        );
     }
 
     private const string INDENT = "    ";
@@ -31,34 +47,31 @@ internal class Program
     {
         using var writer = new StreamWriter(Path.Combine(outputDir, $"{baseName}.cs"));
 
-        writer.WriteLine(
-        """
-        using Interpreter.Framework.Scanning;
-
-        namespace Interpreter.Framework.AST;
-        """);
+        writer.WriteLine($"using Interpreter.Framework.Scanning;");
+        writer.WriteLine();
+        writer.WriteLine("namespace Interpreter.Framework.AST;");
 
         writer.WriteLine($"public abstract record class {baseName}");
         writer.WriteLine("{");
         indentLevel++;
 
         writer.WriteLine(DefineVisitor(baseName, types));
-
         writer.WriteLine();
+
         writer.WriteLine($"{Indent()}public abstract T Accept<T>({VISITOR}<T> visitor);");
+
+        indentLevel--;
+        writer.WriteLine("}");
 
         foreach (var type in types)
         {
             var parts = type.Split(':');
-            var className = parts[0].Trim();
+            var className = $"{parts[0].Trim()}{baseName}";
             var fields = parts[1].Trim();
 
             writer.WriteLine();
             writer.WriteLine(DefineType(baseName, className, fields));
         }
-
-        indentLevel--;
-        writer.WriteLine("}");
     }
 
     private static string DefineVisitor(string baseName, IEnumerable<string> types)
@@ -71,9 +84,9 @@ internal class Program
 
         foreach (var type in types)
         {
-            var typeName = type.Split(':')[0].Trim();
+            var typeName = $"{type.Split(':')[0].Trim()}{baseName}";
 
-            sb.AppendLine($"{Indent()}T Visit{typeName}{baseName}({typeName} {baseName.ToLower()});");
+            sb.AppendLine($"{Indent()}T Visit{typeName}({typeName} {baseName.ToLower()});");
         }
 
         indentLevel--;
@@ -90,7 +103,7 @@ internal class Program
         sb.AppendLine($"{Indent()}{{");
         indentLevel++;
 
-        sb.AppendLine($"{Indent()}public override T Accept<T>({VISITOR}<T> visitor) => visitor.Visit{className}{baseName}(this);");
+        sb.AppendLine($"{Indent()}public override T Accept<T>({VISITOR}<T> visitor) => visitor.Visit{className}(this);");
 
         indentLevel--;
         sb.Append($"{Indent()}}}");

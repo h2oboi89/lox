@@ -32,6 +32,7 @@ internal class Program
             }
         };
 
+        // TODO: make command line argument
         if (System.Diagnostics.Debugger.IsAttached)
         {
             const string DEBUG_LOG = "./debug.log";
