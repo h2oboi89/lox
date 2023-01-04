@@ -1,4 +1,5 @@
-﻿using Interpreter.Framework.Evaluating;
+﻿using Interpreter.Framework.AST;
+using Interpreter.Framework.Evaluating;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
 using static Interpreter.Framework.InterpreterErrorEventArgs;
@@ -8,12 +9,13 @@ namespace Interpreter.Framework;
 public static class Interpreter
 {
     private static readonly AstInterpreter interpreter = new();
+    private static readonly Printer printer = new();
     private static bool initialized = false;
 
     private static void Initialize()
     {
         interpreter.Out += (_, e) => RaiseOut(e.Content);
-        initialized= true;
+        initialized = true;
     }
 
     public static void Run(string? source)
@@ -57,7 +59,8 @@ public static class Interpreter
             return;
         }
 
-        //RaiseDebug($"AST: {printer.Print(statements)}");
+        RaiseDebug($"AST:)");
+        RaiseDebug(printer.Print(statements));
 
         var runtimeError = interpreter.Interpret(statements);
 

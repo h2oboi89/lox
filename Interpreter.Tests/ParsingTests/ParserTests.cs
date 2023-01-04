@@ -8,142 +8,519 @@ internal static class ParserTests
 {
     private static readonly Printer printer = new();
 
+    #region Expressions (covers ExpressionStatement)
     [Test]
-    public static void CanParse_PrimaryExpressions()
+    public static void LiteralExpression_False()
     {
-        var inputs = new List<(string, string)>
-        {
-            ( "123.456", "( 123.456 )" ),
-            ( "\"foo the bar\"", "( foo the bar )"),
-            ( "true" , "( True )" ),
-            ( "false", "( False )" ),
-            ( "nil", "( nil )" ),
-            ( "( 0 )", "( group ( 0 ) )" ),
-        };
+        var input = "false;";
 
-        AssertInputsGenerateProperExpressions(inputs);
+        var expected = """
+        ( expression
+            ( false )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
 
     [Test]
-    public static void CanParse_UnaryExpression()
+    public static void LiteralExpression_True()
     {
-        var inputs = new List<(string, string)>
-        {
-            ( "!false", "( ! ( False ) )"),
-            ( "! true", "( ! ( True ) )"),
-            ( "-1", "( - ( 1 ) )"),
-        };
+        var input = "true;";
 
-        AssertInputsGenerateProperExpressions(inputs);
+        var expected = """
+        ( expression
+            ( true )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
 
     [Test]
-    public static void CanParse_FactorExpressions()
+    public static void LiteralExpression_Nil()
     {
-        var inputs = new List<(string, string)>
-        {
-            ( "1 * 2", "( * ( 1 ) ( 2 ) )" ),
-            ( "3 / 0", "( / ( 3 ) ( 0 ) )" ),
-        };
+        var input = "nil;";
 
-        AssertInputsGenerateProperExpressions(inputs);
+        var expected = """
+        ( expression
+            ( nil )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
 
     [Test]
-    public static void CanParse_TermExpressions()
+    public static void LiteralExpression_Number()
     {
-        var inputs = new List<(string, string)>
-        {
-            ( "1 + 2", "( + ( 1 ) ( 2 ) )" ),
-            ( "3 - 0", "( - ( 3 ) ( 0 ) )" ),
-        };
+        var input = "1.23;";
 
-        AssertInputsGenerateProperExpressions(inputs);
+        var expected = """
+        ( expression
+            ( 1.23 )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
 
     [Test]
-    public static void CanParse_ComparisonExpressions()
+    public static void LiteralExpression_String()
     {
-        var inputs = new List<(string, string)>
-        {
-            ( "1 > 2", "( > ( 1 ) ( 2 ) )" ),
-            ( "3 >= 0", "( >= ( 3 ) ( 0 ) )" ),
-            ( "1 < 2", "( < ( 1 ) ( 2 ) )" ),
-            ( "3 <= 0", "( <= ( 3 ) ( 0 ) )" ),
-        };
+        var input = "\"1.23\";";
 
-        AssertInputsGenerateProperExpressions(inputs);
+        var expected = """
+        ( expression
+            ( "1.23" )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
 
     [Test]
-    public static void CanParse_EqualityExpressions()
+    public static void LiteralExpression_Identifier()
     {
-        var inputs = new List<(string, string)>
-        {
-            ( "1 == 2", "( == ( 1 ) ( 2 ) )" ),
-            ( "3 != 0", "( != ( 3 ) ( 0 ) )" ),
-        };
+        var input = "foo;";
 
-        AssertInputsGenerateProperExpressions(inputs);
+        var expected = """
+        ( expression
+            ( foo )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
 
     [Test]
-    public static void CanHandle_LackOfExpression()
+    public static void GroupExpression()
     {
-        var tokens = GivenThatInputWasScannedWithoutErrors("+1");
+        var input = "( 1.23 );";
 
-        var (expression, parseErrors) = Parser.Parse(tokens);
+        var expected = """
+        ( expression
+            ( group
+                ( 1.23 )
+            )
+        )
+        """;
 
-        var errors = parseErrors.ToList();
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
 
-        Assert.That(expression, Is.Null);
+    [Test]
+    public static void InvalidGroupExpression()
+    {
+        var input = "( 1.23";
+
+        var expected = "Expect ')' after expression.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void InvalidExpression()
+    {
+        var input = ";";
+
+        var expected = "Expect expression.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+
+    [Test]
+    public static void UnaryExpression_Bang()
+    {
+        var input = "!True;";
+
+        var expected = """
+        ( expression
+            ( !
+                ( True )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void UnaryExpression_Minus()
+    {
+        var input = "-1;";
+
+        var expected = """
+        ( expression
+            ( -
+                ( 1 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    #region Binary Expressions
+    [Test]
+    public static void FactorExpression_Slash()
+    {
+        var input = "1 / 3;";
+
+        var expected = """
+        ( expression
+            ( /
+                ( 1 )
+                ( 3 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void FactorExpression_Star()
+    {
+        var input = "2 * 5;";
+
+        var expected = """
+        ( expression
+            ( *
+                ( 2 )
+                ( 5 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void TermExpression_Plus()
+    {
+        var input = "4 + 6;";
+
+        var expected = """
+        ( expression
+            ( +
+                ( 4 )
+                ( 6 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void TermExpression_Minus()
+    {
+        var input = "9 - 8;";
+
+        var expected = """
+        ( expression
+            ( -
+                ( 9 )
+                ( 8 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+
+    [Test]
+    public static void ComparisonExpression_Greater()
+    {
+        var input = "1 > 2;";
+
+        var expected = """
+        ( expression
+            ( >
+                ( 1 )
+                ( 2 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void ComparisonExpression_GreaterEqual()
+    {
+        var input = "3 >= 4;";
+
+        var expected = """
+        ( expression
+            ( >=
+                ( 3 )
+                ( 4 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void ComparisonExpression_Less()
+    {
+        var input = "5 < 6;";
+
+        var expected = """
+        ( expression
+            ( <
+                ( 5 )
+                ( 6 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void ComparisonExpression_LessEqual()
+    {
+        var input = "7 <= 8;";
+
+        var expected = """
+        ( expression
+            ( <=
+                ( 7 )
+                ( 8 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+
+    [Test]
+    public static void EqualityExpression_BangEqual()
+    {
+        var input = "9 != 10;";
+
+        var expected = """
+        ( expression
+            ( !=
+                ( 9 )
+                ( 10 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+
+    [Test]
+    public static void EquailtyExpression_EqualEqual()
+    {
+        var input = "11 == 12;";
+
+        var expected = """
+        ( expression
+            ( ==
+                ( 11 )
+                ( 12 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+    #endregion
+
+
+    [Test]
+    public static void AssignmentExpression()
+    {
+        var input = "a = 3;";
+
+        var expected = """
+        ( expression
+            ( a =
+                ( 3 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void AssignmentExpression_Invalid()
+    {
+        var input = "3 = 1;";
+
+        var expected = "Invalid assignment target.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+    #endregion
+
+    #region Statements
+    [Test]
+    public static void BlockStatement()
+    {
+        var input = """
+        { 
+            a = 1; 
+            b = 2; 
+            a + b; 
+        }
+        """;
+
+        var expected = """
+        ( block
+            ( expression
+                ( a =
+                    ( 1 )
+                )
+            )
+            ( expression
+                ( b =
+                    ( 2 )
+                )
+            )
+            ( expression
+                ( +
+                    ( a )
+                    ( b )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+
+    [Test]
+    public static void BlockStatement_WithError()
+    {
+        var input = """
+        { 
+            a = 3; 
+            b = 4; 
+            5 = 6;
+            print a + b;
+        }
+        """;
+
+        var expectedError = "Invalid assignment target.";
+
+        var expectedStatements = """
+        ( block
+            ( expression
+                ( a =
+                    ( 3 )
+                )
+            )
+            ( expression
+                ( b =
+                    ( 4 )
+                )
+            )
+            ( print
+                ( +
+                    ( a )
+                    ( b )
+                )
+            )
+        )
+        """;
+
+        var (statements, errors) = ProcessInput(input);
 
         Assert.That(errors, Has.Count.EqualTo(1));
-        Assert.That(errors[0].Token.Line, Is.EqualTo(1));
-        Assert.That(errors[0].Token.Lexeme, Is.EqualTo("+"));
-        Assert.That(errors[0].Message, Is.EqualTo("Expect expression."));
+        Assert.That(errors[0], Is.EqualTo(expectedError));
+
+        Assert.That(printer.Print(statements), Is.EqualTo(expectedStatements));
     }
 
     [Test]
-    public static void CanHandle_MissingCloseParentheses()
+    public static void PrintStatement()
     {
-        var tokens = GivenThatInputWasScannedWithoutErrors("( 1");
+        var input = "print 3;";
 
-        var (expression, parseErrors) = Parser.Parse(tokens);
+        var expected = """
+        ( print
+            ( 3 )
+        )
+        """;
 
-        var errors = parseErrors.ToList();
-
-        Assert.That(expression, Is.Null);
-
-        Assert.That(errors, Has.Count.EqualTo(1));
-        Assert.That(errors[0].Token.Line, Is.EqualTo(1));
-        Assert.That(errors[0].Token.Type, Is.EqualTo(TokenType.EOF));
-        Assert.That(errors[0].Message, Is.EqualTo("Expect ')' after expression."));
+        AssertThatInputGeneratesProperStatement(input, expected);
     }
+
+    [Test]
+    public static void VariableDeclaration_NoInitializer()
+    {
+        var input = "var a;";
+
+        var expected = """
+        ( var a =
+            ( nil )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+
+    [Test]
+    public static void VariableDeclaration_WithInitializer()
+    {
+        var input = "var a = 3;";
+
+        var expected = """
+        ( var a =
+            ( 3 )
+        )
+        """;
+
+        AssertThatInputGeneratesProperStatement(input, expected);
+    }
+    #endregion
+
+    // TODO: validate synchronize
 
     #region Helper Methods
-    private static IEnumerable<Token> GivenThatInputWasScannedWithoutErrors(string input)
+    // TODO: include line #s?
+    private static (List<Statement> statements, List<string> error) ProcessInput(string input)
     {
         var (tokens, scanErrors) = Scanner.ScanTokens(input);
 
         Assert.That(scanErrors, Is.Empty);
 
-        return tokens;
+        var (statements, parseErrors) = Parser.Parse(tokens);
+
+        return (statements.ToList(), parseErrors.Select(e => e.Message).ToList());
     }
 
-    private static void AssertInputsGenerateProperExpressions(List<(string input, string expected)> inputs)
+    private static void AssertThatInputGeneratesProperStatement(string input, string expected)
     {
-        foreach (var (input, expected) in inputs)
-        {
-            var tokens = GivenThatInputWasScannedWithoutErrors(input);
+        var (statements, parseErrors) = ProcessInput(input);
 
-            var (expression, parseErrors) = Parser.Parse(tokens);
+        Assert.That(parseErrors, Is.Empty);
 
-            Assert.That(parseErrors, Is.Empty);
-            Assert.That(expression, Is.Not.Null);
+        Assert.That(printer.Print(statements), Is.EqualTo(expected));
+    }
 
-            Assert.That(printer.Print(expression), Is.EqualTo(expected));
-        }
+    private static void AssertInputGeneratesError(string input, string expected)
+    {
+        var (statements, parseErrors) = ProcessInput(input);
+
+        var errors = parseErrors.ToList();
+        Assert.That(errors, Has.Count.EqualTo(1));
+        Assert.That(errors[0], Is.EqualTo(expected));
+
+        Assert.That(statements, Is.Empty);
     }
     #endregion
 }

@@ -6,6 +6,16 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 {
     private Environment environment = new();
 
+    public AstInterpreter()
+    {
+        Reset();
+    }
+
+    public void Reset()
+    {
+        environment = new Environment();
+    }
+
     public LoxRuntimeError? Interpret(IEnumerable<Statement> statements)
     {
         try
@@ -24,7 +34,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     }
 
     public event EventHandler<InterpreterOutEventArgs>? Out;
-    private void RaiseOut(string message) => Out?.Invoke(typeof(Interpreter), new InterpreterOutEventArgs(message));
+    private void RaiseOut(string message) => Out?.Invoke(this, new InterpreterOutEventArgs(message));
 
     #region Expressions
     public object? VisitBinaryExpression(BinaryExpression expression)
@@ -51,7 +61,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
             TokenType.LESS_EQUAL => Functor.LessEqual(CheckNumberOperands(expression.Operator, left, right)),
             TokenType.BANG_EQUAL => !IsEqual(left, right),
             TokenType.EQUAL_EQUAL => IsEqual(left, right),
-            _ => throw new Exception($"unexpected token: '{expression.Operator}"),
+            _ => throw new Exception($"unexpected token: '{expression.Operator}"), // impossible to hit
         };
     }
 
@@ -78,7 +88,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         {
             TokenType.MINUS => -CheckNumberOperand(expression.Operator, right),
             TokenType.BANG => !IsTruthy(right),
-            _ => throw new Exception($"unexpected token: '{expression.Operator}"),
+            _ => throw new Exception($"unexpected token: '{expression.Operator}"), // impossible to hit
         };
     }
 
@@ -112,7 +122,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     {
         var value = Evaluate(statement.Expression);
 
-        RaiseOut(Stringify(value));
+        RaiseOut(Utilities.Stringify(value));
 
         return null;
     }
@@ -183,15 +193,6 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         if (left is double lDbl && right is double rDbl) return (lDbl, rDbl);
 
         throw new LoxRuntimeError(operation, "Operands must be numbers.");
-    }
-
-    private static string Stringify(object? value)
-    {
-        if (value is double dbl) return dbl.ToString();
-
-        if (value is bool boolean) return boolean.ToString().ToLower();
-
-        return value?.ToString() ?? "nil";
     }
     #endregion
 }

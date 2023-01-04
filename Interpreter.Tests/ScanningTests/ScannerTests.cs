@@ -241,6 +241,7 @@ internal static class ScannerTests
     }
     private static string JoinTokens(IEnumerable<Token> tokens, string joiner) => string.Join(joiner, tokens.Select(t => t.ToString().Trim()));
 
+    // TODO: include line #s?
     private static void AssertInputGeneratesError(string input, string expected)
     {
         var (tokens, scanErrors) = Scanner.ScanTokens(input);

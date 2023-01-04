@@ -50,7 +50,7 @@ internal class TokenParser
     {
         var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
 
-        Expression? initializer = null;
+        Expression initializer = new LiteralExpression(null);
         if (Match(TokenType.EQUAL))
         {
             initializer = Expression();

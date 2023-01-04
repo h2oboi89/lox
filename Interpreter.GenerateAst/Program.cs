@@ -32,7 +32,7 @@ internal class Program
                 "Block      : List<Statement> Statements",
                 "Expression : Expression Expression",
                 "Print      : Expression Expression",
-                "Variable   : Token Name, Expression? Initializer",
+                "Variable   : Token Name, Expression Initializer",
             }
         );
     }

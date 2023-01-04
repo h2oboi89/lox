@@ -29,7 +29,7 @@ public record class PrintStatement(Expression Expression) : Statement
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitPrintStatement(this);
 }
 
-public record class VariableStatement(Token Name, Expression? Initializer) : Statement
+public record class VariableStatement(Token Name, Expression Initializer) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVariableStatement(this);
 }
