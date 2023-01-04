@@ -43,6 +43,24 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperError(input, expected);
     }
 
+    [Test]
+    public static void Interpreter_CanBeReset()
+    {
+        var input = """
+        var a = 1;
+        print a;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+
+        interpreter.Reset();
+        output.Clear();
+
+        AssertInputGeneratesProperError("print a;", "Undefined variable 'a'.");
+    }
+
     #region Binary Expressions
     [Test]
     public static void Binary_Plus_Numbers()
