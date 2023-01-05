@@ -31,6 +31,7 @@ internal class Program
             {
                 "Block      : List<Statement> Statements",
                 "Expression : Expression Expression",
+                "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",
                 "Print      : Expression Expression",
                 "Variable   : Token Name, Expression Initializer",
             }

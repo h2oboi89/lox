@@ -448,6 +448,63 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperError(input, expected);
     }
 
+
+    [Test]
+    public static void If_True_NoElse()
+    {
+        var input = """
+        if ( true ) print 1;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void If_False_NoElse()
+    {
+        var input = """
+        if ( false ) print 1;
+        """;
+
+        AssertInputGeneratesNoOutput(input);
+    }
+
+    [Test]
+    public static void If_True_WithElse()
+    {
+        var input = """
+        if ( true ) print 1; else print 2;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void If_False_WithElse()
+    {
+        var input = """
+        if ( false ) print 1; else print 2;
+        """;
+
+        var expected = "2";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Print()
+    {
+        var input = "print 3.14;";
+
+        var expected = "3.14";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
     #region Helper Methods
     private static LoxRuntimeError? ProcessInput(string input)
     {
@@ -470,6 +527,14 @@ internal static class AstInterpreterTests
 
         Assert.That(output, Has.Count.EqualTo(1));
         Assert.That(output[0], Is.EqualTo(expected));
+    }
+
+    private static void AssertInputGeneratesNoOutput(string input)
+    {
+        var error = ProcessInput(input);
+
+        Assert.That(error, Is.Null);
+        Assert.That(output, Is.Empty);
     }
 
     private static void AssertInputsGenerateProperOutputs(List<(string, string)> values)

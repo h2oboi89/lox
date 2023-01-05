@@ -20,7 +20,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -34,7 +34,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -48,7 +48,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -62,7 +62,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -76,7 +76,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -90,7 +90,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -106,7 +106,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -143,7 +143,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -159,7 +159,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     #region Binary Expressions
@@ -177,7 +177,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -194,7 +194,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -211,7 +211,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -228,7 +228,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
 
@@ -246,7 +246,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -263,7 +263,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -280,7 +280,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -297,7 +297,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
 
@@ -315,7 +315,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
 
@@ -333,7 +333,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
     #endregion
 
@@ -351,7 +351,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -398,7 +398,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
 
@@ -445,6 +445,81 @@ internal static class ParserTests
         Assert.That(printer.Print(statements), Is.EqualTo(expectedStatements));
     }
 
+
+    [Test]
+    public static void IfStatement_MissingLeftParen()
+    {
+        var input = "if 3;";
+
+        var expected = "Expect '(' after 'if'.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void IfStatement_MissingRightParen()
+    {
+        var input = "if ( true;";
+
+        var expected = "Expect ')' after if condition.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+
+    [Test]
+    public static void IfStatement_NoElse()
+    {
+        var input = "if ( true ) print 1;";
+
+        var expected = """
+        ( if
+            ( condition
+                ( true )
+            )
+            ( then
+                ( print
+                    ( 1 )
+                )
+            )
+            ( else )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void IfStatement_WithElse()
+    {
+        var input = """
+        if ( true ) 
+            print 1; 
+        else 
+            print 2;
+        """;
+
+        var expected = """
+        ( if
+            ( condition
+                ( true )
+            )
+            ( then
+                ( print
+                    ( 1 )
+                )
+            )
+            ( else
+                ( print
+                    ( 2 )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
     [Test]
     public static void PrintStatement()
     {
@@ -456,7 +531,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -470,7 +545,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -484,7 +559,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperStatement(input, expected);
+        AssertThatInputGeneratesProperTree(input, expected);
     }
     #endregion
 
@@ -503,7 +578,7 @@ internal static class ParserTests
         return (statements.ToList(), parseErrors.Select(e => e.Message).ToList());
     }
 
-    private static void AssertThatInputGeneratesProperStatement(string input, string expected)
+    private static void AssertThatInputGeneratesProperTree(string input, string expected)
     {
         var (statements, parseErrors) = ProcessInput(input);
 

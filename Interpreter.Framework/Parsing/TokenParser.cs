@@ -63,11 +63,28 @@ internal class TokenParser
 
     private Statement Statement()
     {
+        if (Match(TokenType.IF)) return IfStatement();
+
         if (Match(TokenType.PRINT)) return PrintStatement();
 
         if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
 
         return ExpressionStatement();
+    }
+
+    private Statement IfStatement()
+    {
+        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'if'");
+
+        var condition = Expression();
+
+        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "if condition");
+
+        var thenBranch = Statement();
+
+        var elseBranch = Match(TokenType.ELSE) ? Statement() : null;
+
+        return new IfStatement(condition, thenBranch, elseBranch);
     }
 
     private Statement PrintStatement()
