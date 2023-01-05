@@ -487,6 +487,31 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperError(input, expected);
     }
 
+    [Test]
+    public static void For()
+    {
+        var input = """
+        var a = 0;
+        var temp;
+
+        for (var b = 1; a < 10000; b = temp + b) {
+            print a;
+            temp = a;
+            a = b;
+        }
+        """;
+
+        var expected = new List<string>
+        {
+            "0", "1", "1", "2", "3",
+            "5", "8", "13", "21", "34",
+            "55", "89", "144", "233", "377",
+            "610", "987", "1597", "2584", "4181",
+            "6765"
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
 
     [Test]
     public static void If_True_NoElse()

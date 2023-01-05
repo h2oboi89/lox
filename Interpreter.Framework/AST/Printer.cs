@@ -57,7 +57,7 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
         sb.AppendLine(Parenthesize("condition", statement.Condition));
 
         sb.AppendLine(Parenthesize("then", statement.ThenBranch));
-        
+
         if (statement.ElseBranch != null)
         {
             sb.AppendLine(Parenthesize("else", statement.ElseBranch));
@@ -72,13 +72,23 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
         return sb.ToString();
     }
-        
+
 
     public string VisitPrintStatement(PrintStatement statement) =>
         Parenthesize("print", statement.Expression);
 
-    public string VisitBlockStatement(BlockStatement statement) =>
-        Parenthesize("block", statement.Statements);
+    public string VisitBlockStatement(BlockStatement statement)
+    {
+        if (statement.Statements.Count == 0)
+        {
+            return Parenthesize("block");
+        }
+        else
+        {
+            return Parenthesize("block", statement.Statements);
+        }
+    }
+        
 
     public string VisitExpressionStatement(ExpressionStatement statement) =>
         Parenthesize("expression", statement.Expression);
@@ -106,7 +116,7 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
     #region Helper Methods
     private string Parenthesize(string name, params Expression[] expressions) => Parenthesize(name, expressions.ToList());
-    
+
     private string Parenthesize(string name, IEnumerable<Expression> expressions)
     {
         var sb = new StringBuilder();

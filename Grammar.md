@@ -7,55 +7,58 @@ program        → declaration* EOF ;
 
 ## Statements
 ```
-declaration    → varDecl
-               | statement ;
+declaration     → varDecl
+                | statement ;
 
-varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;               
+varDecl         → "var" IDENTIFIER ( "=" expression )? ";" ;               
 
-statement      → exprStmt
-               | ifStmt
-               | printStmt
-               | whileStmt
-               | block ;
+statement       → exprStmt
+                | ifStmt
+                | forStmt
+                | printStmt
+                | whileStmt
+                | block ;
 
-whileStmt      → "while" "(" expression ")" statement ;
+exprStmt        → expression ";" ;
 
-ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+ifStmt          → "if" "(" expression ")" statement ( "else" statement )? ;
 
-block          → "{" declaration* "}" ;
+forStmt         → "for" "(" ( varDecl | exprStmt | ";" expression? ";" expression? ")" statement ;
 
-exprStmt       → expression ";" ;
+printStmt       → "print" expression ";" ;
 
-printStmt      → "print" expression ";" ;
+whileStmt       → "while" "(" expression ")" statement ;
+
+block           → "{" declaration* "}" ;
 ```
 
 ## Expressions
 ```
-expression     → assignment ;
+expression      → assignment ;
 
-assignment     → INDENTIFIER "=" assignment
-               | logic_or ;
+assignment      → INDENTIFIER "=" assignment
+                | logic_or ;
 
-logic_or       → logic_and ( "or" logic_and )* ;
+logic_or        → logic_and ( "or" logic_and )* ;
 
-logic_and      → equality ( "and" equality )* ;
+logic_and       → equality ( "and" equality )* ;
 
-equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+equality        → comparison ( ( "!=" | "==" ) comparison )* ;
 
-comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+comparison      → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 
-term           → factor ( ( "-" | "+" ) factor )* ;
+term            → factor ( ( "-" | "+" ) factor )* ;
 
-factor         → unary ( ( "/" | "*" ) unary )* ;
+factor          → unary ( ( "/" | "*" ) unary )* ;
 
-unary          → ( "!" | "-" ) unary 
-               | primary ;
+unary           → ( "!" | "-" ) unary 
+                | primary ;
 
-primary        → NUMBER 
-               | STRING 
-               | "true" 
-               | "false" 
-               | "nil" 
-               | "(" expression ")" 
-               | IDENTIFIER ;
+primary         → NUMBER 
+                | STRING 
+                | "true" 
+                | "false" 
+                | "nil" 
+                | "(" expression ")" 
+                | IDENTIFIER ;
 ```

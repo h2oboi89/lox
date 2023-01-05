@@ -481,6 +481,128 @@ internal static class ParserTests
         Assert.That(printer.Print(statements), Is.EqualTo(expectedStatements));
     }
 
+    [Test]
+    public static void For_MissingLeftParen()
+    {
+        var input = "for 1;";
+
+        var expected = "Expect '(' after 'for'.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void For_MissingRightParen()
+    {
+        var input = "for (;;1";
+
+        var expected = "Expect ')' after for clauses.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void For_Empty()
+    {
+        var input = "for (;;) { }";
+
+        var expected = """
+        ( while
+            ( condition
+                ( true )
+            )
+            ( body
+                ( block )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void For_Standard()
+    {
+        var input = "for ( var i = 0; i < 10; i = i + 1 ) { print i; }";
+
+        var expected = """
+        ( block
+            ( var i =
+                ( 0 )
+            )
+            ( while
+                ( condition
+                    ( <
+                        ( i )
+                        ( 10 )
+                    )
+                )
+                ( body
+                    ( block
+                        ( block
+                            ( print
+                                ( i )
+                            )
+                        )
+                        ( expression
+                            ( i =
+                                ( +
+                                    ( i )
+                                    ( 1 )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void For_ExpressionInit()
+    {
+        var input = "for ( i = 0; i < 10; i = i + 1 ) { print i; }";
+
+        var expected = """
+        ( block
+            ( expression
+                ( i =
+                    ( 0 )
+                )
+            )
+            ( while
+                ( condition
+                    ( <
+                        ( i )
+                        ( 10 )
+                    )
+                )
+                ( body
+                    ( block
+                        ( block
+                            ( print
+                                ( i )
+                            )
+                        )
+                        ( expression
+                            ( i =
+                                ( +
+                                    ( i )
+                                    ( 1 )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
 
     [Test]
     public static void IfStatement_MissingLeftParen()
@@ -557,6 +679,45 @@ internal static class ParserTests
     }
 
     [Test]
+    public static void IfStatement_Blocks()
+    {
+        var input = """
+        if ( true ) 
+        {
+            print 1; 
+        }
+        else 
+        {
+            print 2;
+        }
+        """;
+
+        var expected = """
+        ( if
+            ( condition
+                ( true )
+            )
+            ( then
+                ( block
+                    ( print
+                        ( 1 )
+                    )
+                )
+            )
+            ( else
+                ( block
+                    ( print
+                        ( 2 )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
     public static void PrintStatement()
     {
         var input = "print 3;";
@@ -590,6 +751,7 @@ internal static class ParserTests
         AssertInputGeneratesError(input, expected);
     }
 
+    [Test]
     public static void While_SimpleBody()
     {
         var input = """

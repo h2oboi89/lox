@@ -63,6 +63,8 @@ internal class TokenParser
 
     private Statement Statement()
     {
+        if (Match(TokenType.FOR)) return ForStatement();
+
         if (Match(TokenType.IF)) return IfStatement();
 
         if (Match(TokenType.PRINT)) return PrintStatement();
@@ -72,6 +74,62 @@ internal class TokenParser
         if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
 
         return ExpressionStatement();
+    }
+
+    private Statement ForStatement()
+    {
+        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'for'");
+
+        Statement? initializer;
+
+        if (Match(TokenType.SEMICOLON))
+        {
+            initializer = null;
+        }
+        else if (Match(TokenType.VAR))
+        {
+            initializer = VariableDeclaration();
+        }
+        else
+        {
+            initializer = ExpressionStatement();
+        }
+
+        Expression? condition = null;
+
+        if (!Check(TokenType.SEMICOLON))
+        {
+            condition = Expression();
+        }
+
+        ConsumeSemicolon("loop condition");
+
+        Expression? increment = null;
+
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            increment = Expression();
+        }
+
+        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "for clauses");
+
+        var body = Statement();
+
+        if (increment != null)
+        {
+            body = new BlockStatement(new List<Statement> { body, new ExpressionStatement(increment) });
+        }
+
+        if (condition == null) condition = new LiteralExpression(true);
+
+        body = new WhileStatement(condition, body);
+
+        if (initializer != null)
+        {
+            body = new BlockStatement(new List<Statement> { initializer, body });
+        }
+
+        return body;
     }
 
     private Statement IfStatement()
