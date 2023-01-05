@@ -24,6 +24,8 @@ define delete_dir
 	@if EXIST $1 rmdir $1 /s /q;
 endef
 
+.DEFAULT_GOAL := tdd
+
 .PHONY: build
 build:
 	dotnet build -c $(CONFIG) -v q --nologo

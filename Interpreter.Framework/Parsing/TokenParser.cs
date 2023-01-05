@@ -67,6 +67,8 @@ internal class TokenParser
 
         if (Match(TokenType.PRINT)) return PrintStatement();
 
+        if (Match(TokenType.WHILE)) return WhileStatement();
+
         if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
 
         return ExpressionStatement();
@@ -96,13 +98,17 @@ internal class TokenParser
         return new PrintStatement(value);
     }
 
-    private Statement ExpressionStatement()
+    private Statement WhileStatement()
     {
-        var expression = Expression();
+        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'while'");
 
-        ConsumeSemicolon("expression");
+        var condition = Expression();
 
-        return new ExpressionStatement(expression);
+        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "condition");
+
+        var body = Statement();
+
+        return new WhileStatement(condition, body);
     }
 
     private List<Statement> Block()
@@ -122,6 +128,15 @@ internal class TokenParser
         ConsumeCharacter(TokenType.RIGHT_BRACE, '}', "block");
 
         return statements;
+    }
+
+    private Statement ExpressionStatement()
+    {
+        var expression = Expression();
+
+        ConsumeSemicolon("expression");
+
+        return new ExpressionStatement(expression);
     }
 
     private Expression Expression() => Assignment();

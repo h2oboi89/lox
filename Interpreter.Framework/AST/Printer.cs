@@ -83,6 +83,23 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     public string VisitExpressionStatement(ExpressionStatement statement) =>
         Parenthesize("expression", statement.Expression);
 
+    public string VisitWhileStatement(WhileStatement statement)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"{Indent()}( while");
+        indentLevel++;
+
+        sb.AppendLine(Parenthesize("condition", statement.Condition));
+
+        sb.AppendLine(Parenthesize("body", statement.Body));
+
+        indentLevel--;
+        sb.Append($"{Indent()})");
+
+        return sb.ToString();
+    }
+
     public string VisitVariableStatement(VariableStatement statement) =>
         Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
     #endregion

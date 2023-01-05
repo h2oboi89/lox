@@ -571,6 +571,88 @@ internal static class ParserTests
     }
 
     [Test]
+    public static void While_MissingLeftParen()
+    {
+        var input = "while 1;";
+
+        var expected = "Expect '(' after 'while'.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void While_MissingRightParen()
+    {
+        var input = "while ( true 1;";
+
+        var expected = "Expect ')' after condition.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    public static void While_SimpleBody()
+    {
+        var input = """
+        while ( true )
+            print "hi!";
+        """;
+
+        var expected = """
+        ( while
+            ( condition
+                ( true )
+            )
+            ( body
+                ( print
+                    ( "hi!" )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void While_BlockBody()
+    {
+        var input = """
+        while ( true )
+        {
+            var a = 1;
+            var b = 2;
+            print a + b;
+        }
+        """;
+
+        var expected = """
+        ( while
+            ( condition
+                ( true )
+            )
+            ( body
+                ( block
+                    ( var a =
+                        ( 1 )
+                    )
+                    ( var b =
+                        ( 2 )
+                    )
+                    ( print
+                        ( +
+                            ( a )
+                            ( b )
+                        )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
     public static void VariableDeclaration_NoInitializer()
     {
         var input = "var a;";

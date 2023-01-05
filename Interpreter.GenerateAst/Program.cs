@@ -35,6 +35,7 @@ internal class Program
                 "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",
                 "Print      : Expression Expression",
                 "Variable   : Token Name, Expression Initializer",
+                "While      : Expression Condition, Statement Body",
             }
         );
     }

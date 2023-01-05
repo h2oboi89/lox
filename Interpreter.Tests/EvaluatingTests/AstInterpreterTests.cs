@@ -544,6 +544,27 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperOutput(input, expected);
     }
 
+    [Test]
+    public static void While()
+    {
+        var input = """
+        var i = 0;
+        
+        while ( i < 3 )
+        {
+            print i;
+            i = i + 1;
+        }
+        """;
+
+        var expected = new List<string>
+        {
+            "0", "1", "2"
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
     #region Helper Methods
     private static LoxRuntimeError? ProcessInput(string input)
     {
@@ -566,6 +587,20 @@ internal static class AstInterpreterTests
 
         Assert.That(output, Has.Count.EqualTo(1));
         Assert.That(output[0], Is.EqualTo(expected));
+    }
+
+    private static void AssertInputGeneratesProperOutputs(string input, List<string> expected)
+    {
+        var error = ProcessInput(input);
+
+        Assert.That(error, Is.Null);
+
+        Assert.That(output.Count, Is.EqualTo(expected.Count));
+        
+        for(var i = 0; i < expected.Count; i++)
+        {
+            Assert.That(output[i], Is.EqualTo(expected[i]));
+        }
     }
 
     private static void AssertInputGeneratesNoOutput(string input)

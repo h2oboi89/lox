@@ -158,6 +158,15 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
+    public object? VisitWhileStatement(WhileStatement statement)
+    {
+        while (IsTruthy(Evaluate(statement.Condition))) {
+            Execute(statement.Body);
+        }
+
+        return null;
+    }
+
     public object? VisitVariableStatement(VariableStatement statement)
     {
         var value = Evaluate(statement.Initializer);
