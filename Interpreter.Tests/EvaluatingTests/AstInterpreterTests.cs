@@ -338,6 +338,45 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperOutput(input, expected);
     }
 
+    [Test]
+    public static void LogicalExpression_Or_False()
+    {
+        var input = "print false or 1;";
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_Or_True()
+    {
+        var input = "print true or 1;";
+
+        var expected = "true";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_And_False()
+    {
+        var input = "print false and 1;";
+
+        var expected = "false";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_And_True()
+    {
+        var input = "print true and 1;";
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
 
     [Test]
     public static void UnaryExpression_Minus_Valid()

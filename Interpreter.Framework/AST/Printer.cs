@@ -36,6 +36,9 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
         return Parenthesize(name);
     }
 
+    public string VisitLogicalExpression(LogicalExpression expression) =>
+        Parenthesize(expression.Operator.Lexeme, expression.Left, expression.Right);
+
     public string VisitUnaryExpression(UnaryExpression expression) =>
         Parenthesize(expression.Operator.Lexeme, expression.Right);
 

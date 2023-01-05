@@ -80,6 +80,23 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     public object? VisitLiteralExpression(LiteralExpression expression) => expression.Value;
 
+    public object? VisitLogicalExpression(LogicalExpression expression)
+    {
+        var left = Evaluate(expression.Left);
+
+        if (expression.Operator.Type == TokenType.OR)
+        {
+            if (IsTruthy(left)) return left;
+        }
+
+        if (expression.Operator.Type == TokenType.AND)
+        {
+            if (!IsTruthy(left)) return left;
+        }
+
+        return Evaluate(expression.Right);
+    }
+
     public object? VisitUnaryExpression(UnaryExpression expression)
     {
         var right = Evaluate(expression.Right);

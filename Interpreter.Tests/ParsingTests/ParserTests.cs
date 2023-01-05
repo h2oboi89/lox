@@ -337,7 +337,6 @@ internal static class ParserTests
     }
     #endregion
 
-
     [Test]
     public static void AssignmentExpression()
     {
@@ -363,6 +362,43 @@ internal static class ParserTests
 
         AssertInputGeneratesError(input, expected);
     }
+
+    #region Logical Expressions
+
+    [Test]
+    public static void LogicalExpression_Or()
+    {
+        var input = "print \"hi\" or 2;";
+
+        var expected = """
+        ( print
+            ( or
+                ( "hi" )
+                ( 2 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_And()
+    {
+        var input = "print nil and 2;";
+
+        var expected = """
+        ( print
+            ( and
+                ( nil )
+                ( 2 )
+            )
+        )
+        """;
+
+        AssertThatInputGeneratesProperTree(input, expected);
+    }
+    #endregion
     #endregion
 
     #region Statements
