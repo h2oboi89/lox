@@ -7,45 +7,58 @@ program        → declaration* EOF ;
 
 ## Statements
 ```
-declaration    → varDecl
-               | statement ;
+declaration     → varDecl
+                | statement ;
 
-varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;               
+varDecl         → "var" IDENTIFIER ( "=" expression )? ";" ;               
 
-statement      → exprStmt
-               | printStmt 
-               | block ;
+statement       → exprStmt
+                | ifStmt
+                | forStmt
+                | printStmt
+                | whileStmt
+                | block ;
 
-block          → "{" declaration* "}" ;
+exprStmt        → expression ";" ;
 
-exprStmt       → expression ";" ;
+ifStmt          → "if" "(" expression ")" statement ( "else" statement )? ;
 
-printStmt      → "print" expression ";" ;
+forStmt         → "for" "(" ( varDecl | exprStmt | ";" expression? ";" expression? ")" statement ;
+
+printStmt       → "print" expression ";" ;
+
+whileStmt       → "while" "(" expression ")" statement ;
+
+block           → "{" declaration* "}" ;
 ```
 
 ## Expressions
 ```
-expression     → assignment ;
+expression      → assignment ;
 
-assignment     → INDENTIFIER "=" assignment
-               | equality ;
+assignment      → INDENTIFIER "=" assignment
+                | logic_or ;
 
-equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+logic_or        → logic_and ( "or" logic_and )* ;
 
-comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+logic_and       → equality ( "and" equality )* ;
 
-term           → factor ( ( "-" | "+" ) factor )* ;
+equality        → comparison ( ( "!=" | "==" ) comparison )* ;
 
-factor         → unary ( ( "/" | "*" ) unary )* ;
+comparison      → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 
-unary          → ( "!" | "-" ) unary 
-               | primary ;
+term            → factor ( ( "-" | "+" ) factor )* ;
 
-primary        → NUMBER 
-               | STRING 
-               | "true" 
-               | "false" 
-               | "nil" 
-               | "(" expression ")" 
-               | IDENTIFIER ;
+factor          → unary ( ( "/" | "*" ) unary )* ;
+
+unary           → ( "!" | "-" ) unary 
+                | primary ;
+
+primary         → NUMBER 
+                | STRING 
+                | "true" 
+                | "false" 
+                | "nil" 
+                | "(" expression ")" 
+                | IDENTIFIER ;
 ```

@@ -34,6 +34,9 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
         return Parenthesize(name);
     }
 
+    public string VisitLogicalExpression(LogicalExpression expression) =>
+        Parenthesize(expression.Operator.Lexeme, expression.Left, expression.Right);
+
     public string VisitUnaryExpression(UnaryExpression expression) =>
         Parenthesize(expression.Operator.Lexeme, expression.Right);
 
@@ -42,6 +45,33 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     #endregion
 
     #region Statements
+    public string VisitIfStatement(IfStatement statement)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"{Indent()}( if");
+        indentLevel++;
+
+        sb.AppendLine(Parenthesize("condition", statement.Condition));
+
+        sb.AppendLine(Parenthesize("then", statement.ThenBranch));
+
+        if (statement.ElseBranch != null)
+        {
+            sb.AppendLine(Parenthesize("else", statement.ElseBranch));
+        }
+        else
+        {
+            sb.AppendLine(Parenthesize("else"));
+        }
+
+        indentLevel--;
+        sb.Append($"{Indent()})");
+
+        return sb.ToString();
+    }
+
+
     public string VisitPrintStatement(PrintStatement statement) =>
         Parenthesize("print", statement.Expression);
 
@@ -51,39 +81,55 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     public string VisitExpressionStatement(ExpressionStatement statement) =>
         Parenthesize("expression", statement.Expression);
 
-    public string VisitVariableStatement(VariableStatement statement) =>
-        Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
-    #endregion
-
-    #region Helper Methods
-    private string Parenthesize(string name, params Expression[] expressions)
+    public string VisitWhileStatement(WhileStatement statement)
     {
         var sb = new StringBuilder();
 
-        sb.AppendLine($"{Indent()}( {name}");
-
+        sb.AppendLine($"{Indent()}( while");
         indentLevel++;
-        foreach (var expression in expressions)
-        {
-            sb.AppendLine(expression.Accept(this));
-        }
-        indentLevel--;
 
+        sb.AppendLine(Parenthesize("condition", statement.Condition));
+
+        sb.AppendLine(Parenthesize("body", statement.Body));
+
+        indentLevel--;
         sb.Append($"{Indent()})");
 
         return sb.ToString();
     }
 
-    private string Parenthesize(string name, IEnumerable<Statement> statements)
+    public string VisitVariableStatement(VariableStatement statement) =>
+        Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
+    #endregion
+
+    #region Helper Methods
+    private string Parenthesize(string name, params Expression[] expressions) =>
+        Parenthesize(name, expressions.ToList());
+
+    private string Parenthesize(string name, IEnumerable<Expression> expressions) =>
+        Parenthesize(name, expressions, (printer, node) => node.Accept(this));
+
+    private string Parenthesize(string name, params Statement[] statements) =>
+        Parenthesize(name, statements.ToList());
+
+    private string Parenthesize(string name, IEnumerable<Statement> statements) =>
+        Parenthesize(name, statements, (printer, node) => node.Accept(this));
+
+    private string Parenthesize<T>(string name, IEnumerable<T> nodes, Func<Printer, T, string> stringify)
     {
+        if (!nodes.Any())
+        {
+            return Parenthesize(name);
+        }
+
         var sb = new StringBuilder();
 
         sb.AppendLine($"{Indent()}( {name}");
 
         indentLevel++;
-        foreach (var statement in statements)
+        foreach (var node in nodes)
         {
-            sb.AppendLine(statement.Accept(this));
+            sb.AppendLine(stringify(this, node));
         }
         indentLevel--;
 

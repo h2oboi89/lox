@@ -63,11 +63,88 @@ internal class TokenParser
 
     private Statement Statement()
     {
+        if (Match(TokenType.FOR)) return ForStatement();
+
+        if (Match(TokenType.IF)) return IfStatement();
+
         if (Match(TokenType.PRINT)) return PrintStatement();
+
+        if (Match(TokenType.WHILE)) return WhileStatement();
 
         if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
 
         return ExpressionStatement();
+    }
+
+    private Statement ForStatement()
+    {
+        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'for'");
+
+        Statement? initializer;
+
+        if (Match(TokenType.SEMICOLON))
+        {
+            initializer = null;
+        }
+        else if (Match(TokenType.VAR))
+        {
+            initializer = VariableDeclaration();
+        }
+        else
+        {
+            initializer = ExpressionStatement();
+        }
+
+        Expression? condition = null;
+
+        if (!Check(TokenType.SEMICOLON))
+        {
+            condition = Expression();
+        }
+
+        ConsumeSemicolon("loop condition");
+
+        Expression? increment = null;
+
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            increment = Expression();
+        }
+
+        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "for clauses");
+
+        var body = Statement();
+
+        if (increment != null)
+        {
+            body = new BlockStatement(new List<Statement> { body, new ExpressionStatement(increment) });
+        }
+
+        if (condition == null) condition = new LiteralExpression(true);
+
+        body = new WhileStatement(condition, body);
+
+        if (initializer != null)
+        {
+            body = new BlockStatement(new List<Statement> { initializer, body });
+        }
+
+        return body;
+    }
+
+    private Statement IfStatement()
+    {
+        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'if'");
+
+        var condition = Expression();
+
+        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "if condition");
+
+        var thenBranch = Statement();
+
+        var elseBranch = Match(TokenType.ELSE) ? Statement() : null;
+
+        return new IfStatement(condition, thenBranch, elseBranch);
     }
 
     private Statement PrintStatement()
@@ -79,13 +156,17 @@ internal class TokenParser
         return new PrintStatement(value);
     }
 
-    private Statement ExpressionStatement()
+    private Statement WhileStatement()
     {
-        var expression = Expression();
+        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'while'");
 
-        ConsumeSemicolon("expression");
+        var condition = Expression();
 
-        return new ExpressionStatement(expression);
+        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "condition");
+
+        var body = Statement();
+
+        return new WhileStatement(condition, body);
     }
 
     private List<Statement> Block()
@@ -107,11 +188,20 @@ internal class TokenParser
         return statements;
     }
 
+    private Statement ExpressionStatement()
+    {
+        var expression = Expression();
+
+        ConsumeSemicolon("expression");
+
+        return new ExpressionStatement(expression);
+    }
+
     private Expression Expression() => Assignment();
 
     private Expression Assignment()
     {
-        var expression = Equality();
+        var expression = Or();
 
         if (Match(TokenType.EQUAL))
         {
@@ -124,6 +214,34 @@ internal class TokenParser
             }
 
             throw new ParseError(equals, "Invalid assignment target.");
+        }
+
+        return expression;
+    }
+
+    private Expression Or()
+    {
+        var expression = And();
+
+        while(Match(TokenType.OR))
+        {
+            var op = Previous();
+            var right = And();
+            expression = new LogicalExpression(expression, op, right);
+        }
+
+        return expression;
+    }
+
+    private Expression And()
+    {
+        var expression = Equality();
+
+        while (Match(TokenType.AND))
+        {
+            var op = Previous();
+            var right = Equality();
+            expression = new LogicalExpression(expression, op, right);
         }
 
         return expression;

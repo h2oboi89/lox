@@ -338,6 +338,45 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperOutput(input, expected);
     }
 
+    [Test]
+    public static void LogicalExpression_Or_False()
+    {
+        var input = "print false or 1;";
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_Or_True()
+    {
+        var input = "print true or 1;";
+
+        var expected = "true";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_And_False()
+    {
+        var input = "print false and 1;";
+
+        var expected = "false";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void LogicalExpression_And_True()
+    {
+        var input = "print true and 1;";
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
 
     [Test]
     public static void UnaryExpression_Minus_Valid()
@@ -448,6 +487,109 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperError(input, expected);
     }
 
+    [Test]
+    public static void For()
+    {
+        var input = """
+        var a = 0;
+        var temp;
+
+        for (var b = 1; a < 10000; b = temp + b) {
+            print a;
+            temp = a;
+            a = b;
+        }
+        """;
+
+        var expected = new List<string>
+        {
+            "0", "1", "1", "2", "3",
+            "5", "8", "13", "21", "34",
+            "55", "89", "144", "233", "377",
+            "610", "987", "1597", "2584", "4181",
+            "6765"
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
+    public static void If_True_NoElse()
+    {
+        var input = """
+        if ( true ) print 1;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void If_False_NoElse()
+    {
+        var input = """
+        if ( false ) print 1;
+        """;
+
+        AssertInputGeneratesNoOutput(input);
+    }
+
+    [Test]
+    public static void If_True_WithElse()
+    {
+        var input = """
+        if ( true ) print 1; else print 2;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void If_False_WithElse()
+    {
+        var input = """
+        if ( false ) print 1; else print 2;
+        """;
+
+        var expected = "2";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Print()
+    {
+        var input = "print 3.14;";
+
+        var expected = "3.14";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void While()
+    {
+        var input = """
+        var i = 0;
+        
+        while ( i < 3 )
+        {
+            print i;
+            i = i + 1;
+        }
+        """;
+
+        var expected = new List<string>
+        {
+            "0", "1", "2"
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
     #region Helper Methods
     private static LoxRuntimeError? ProcessInput(string input)
     {
@@ -470,6 +612,28 @@ internal static class AstInterpreterTests
 
         Assert.That(output, Has.Count.EqualTo(1));
         Assert.That(output[0], Is.EqualTo(expected));
+    }
+
+    private static void AssertInputGeneratesProperOutputs(string input, List<string> expected)
+    {
+        var error = ProcessInput(input);
+
+        Assert.That(error, Is.Null);
+
+        Assert.That(output.Count, Is.EqualTo(expected.Count));
+        
+        for(var i = 0; i < expected.Count; i++)
+        {
+            Assert.That(output[i], Is.EqualTo(expected[i]));
+        }
+    }
+
+    private static void AssertInputGeneratesNoOutput(string input)
+    {
+        var error = ProcessInput(input);
+
+        Assert.That(error, Is.Null);
+        Assert.That(output, Is.Empty);
     }
 
     private static void AssertInputsGenerateProperOutputs(List<(string, string)> values)

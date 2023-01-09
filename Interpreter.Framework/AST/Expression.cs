@@ -9,6 +9,7 @@ public abstract record class Expression
         T VisitBinaryExpression(BinaryExpression expression);
         T VisitGroupingExpression(GroupingExpression expression);
         T VisitLiteralExpression(LiteralExpression expression);
+        T VisitLogicalExpression(LogicalExpression expression);
         T VisitUnaryExpression(UnaryExpression expression);
         T VisitVariableExpression(VariableExpression expression);
     }
@@ -34,6 +35,11 @@ public record class GroupingExpression(Expression Expression) : Expression
 public record class LiteralExpression(object? Value) : Expression
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLiteralExpression(this);
+}
+
+public record class LogicalExpression(Expression Left, Token Operator, Expression Right) : Expression
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitLogicalExpression(this);
 }
 
 public record class UnaryExpression(Token Operator, Expression Right) : Expression

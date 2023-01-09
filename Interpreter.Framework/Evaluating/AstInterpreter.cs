@@ -80,6 +80,23 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     public object? VisitLiteralExpression(LiteralExpression expression) => expression.Value;
 
+    public object? VisitLogicalExpression(LogicalExpression expression)
+    {
+        var left = Evaluate(expression.Left);
+
+        if (expression.Operator.Type == TokenType.OR)
+        {
+            if (IsTruthy(left)) return left;
+        }
+
+        if (expression.Operator.Type == TokenType.AND)
+        {
+            if (!IsTruthy(left)) return left;
+        }
+
+        return Evaluate(expression.Right);
+    }
+
     public object? VisitUnaryExpression(UnaryExpression expression)
     {
         var right = Evaluate(expression.Right);
@@ -118,6 +135,20 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
+    public object? VisitIfStatement(IfStatement statement)
+    {
+        if (IsTruthy(Evaluate(statement.Condition)))
+        {
+            Execute(statement.ThenBranch);
+        }
+        else if (statement.ElseBranch != null)
+        {
+            Execute(statement.ElseBranch);
+        }
+
+        return null;
+    }
+
     public object? VisitPrintStatement(PrintStatement statement)
     {
         var value = Evaluate(statement.Expression);
@@ -127,14 +158,18 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
+    public object? VisitWhileStatement(WhileStatement statement)
+    {
+        while (IsTruthy(Evaluate(statement.Condition))) {
+            Execute(statement.Body);
+        }
+
+        return null;
+    }
+
     public object? VisitVariableStatement(VariableStatement statement)
     {
-        object? value = null;
-
-        if (statement.Initializer != null)
-        {
-            value = Evaluate(statement.Initializer);
-        }
+        var value = Evaluate(statement.Initializer);
 
         environment.Define(statement.Name.Lexeme, value);
 

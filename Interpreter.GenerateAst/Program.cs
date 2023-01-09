@@ -20,6 +20,7 @@ internal class Program
                 "Binary     : Expression Left, Token Operator, Expression Right",
                 "Grouping   : Expression Expression",
                 "Literal    : object? Value",
+                "Logical    : Expression Left, Token Operator, Expression Right",
                 "Unary      : Token Operator, Expression Right",
                 "Variable   : Token Name",
             }
@@ -31,8 +32,10 @@ internal class Program
             {
                 "Block      : List<Statement> Statements",
                 "Expression : Expression Expression",
+                "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",
                 "Print      : Expression Expression",
                 "Variable   : Token Name, Expression Initializer",
+                "While      : Expression Condition, Statement Body",
             }
         );
     }
