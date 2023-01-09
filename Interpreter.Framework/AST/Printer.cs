@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.Text;
 
 namespace Interpreter.Framework.AST;
 public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
@@ -77,18 +75,8 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     public string VisitPrintStatement(PrintStatement statement) =>
         Parenthesize("print", statement.Expression);
 
-    public string VisitBlockStatement(BlockStatement statement)
-    {
-        if (statement.Statements.Count == 0)
-        {
-            return Parenthesize("block");
-        }
-        else
-        {
-            return Parenthesize("block", statement.Statements);
-        }
-    }
-        
+    public string VisitBlockStatement(BlockStatement statement) =>
+        Parenthesize("block", statement.Statements);
 
     public string VisitExpressionStatement(ExpressionStatement statement) =>
         Parenthesize("expression", statement.Expression);
@@ -115,38 +103,33 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     #endregion
 
     #region Helper Methods
-    private string Parenthesize(string name, params Expression[] expressions) => Parenthesize(name, expressions.ToList());
+    private string Parenthesize(string name, params Expression[] expressions) =>
+        Parenthesize(name, expressions.ToList());
 
-    private string Parenthesize(string name, IEnumerable<Expression> expressions)
+    private string Parenthesize(string name, IEnumerable<Expression> expressions) =>
+        Parenthesize(name, expressions, (printer, node) => node.Accept(this));
+
+    private string Parenthesize(string name, params Statement[] statements) =>
+        Parenthesize(name, statements.ToList());
+
+    private string Parenthesize(string name, IEnumerable<Statement> statements) =>
+        Parenthesize(name, statements, (printer, node) => node.Accept(this));
+
+    private string Parenthesize<T>(string name, IEnumerable<T> nodes, Func<Printer, T, string> stringify)
     {
-        var sb = new StringBuilder();
-
-        sb.AppendLine($"{Indent()}( {name}");
-
-        indentLevel++;
-        foreach (var expression in expressions)
+        if (!nodes.Any())
         {
-            sb.AppendLine(expression.Accept(this));
+            return Parenthesize(name);
         }
-        indentLevel--;
 
-        sb.Append($"{Indent()})");
-
-        return sb.ToString();
-    }
-
-    private string Parenthesize(string name, params Statement[] statements) => Parenthesize(name, statements.ToList());
-
-    private string Parenthesize(string name, IEnumerable<Statement> statements)
-    {
         var sb = new StringBuilder();
 
         sb.AppendLine($"{Indent()}( {name}");
 
         indentLevel++;
-        foreach (var statement in statements)
+        foreach (var node in nodes)
         {
-            sb.AppendLine(statement.Accept(this));
+            sb.AppendLine(stringify(this, node));
         }
         indentLevel--;
 
