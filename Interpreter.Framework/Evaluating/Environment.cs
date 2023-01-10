@@ -9,6 +9,8 @@ internal class Environment
 
     public Environment(Environment? enclosing = null) { this.enclosing = enclosing; }
 
+    public void Clear() => values.Clear();
+
     public void Define(string name, object? value) { values[name] = value; }
 
     public object? Get(Token name)

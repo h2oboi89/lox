@@ -181,13 +181,14 @@ internal static class AstInterpreterTests
     [Test]
     public static void Binary_Greater_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print 7 >= 8;", "false" ),
-            ( "print 9 >= 9;", "true" )
-        };
+        var input = """
+        print 7 >= 8;
+        print 9 >= 9;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "false", "true" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
 
@@ -211,13 +212,14 @@ internal static class AstInterpreterTests
     [Test]
     public static void Binary_GreaterEqual_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print 10 >= 11;", "false" ),
-            ( "print 12 >= 12;", "true" )
-        };
+        var input = """
+        print 10 >= 11;
+        print 12 >= 12;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "false", "true" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
     [Test]
@@ -240,13 +242,14 @@ internal static class AstInterpreterTests
     [Test]
     public static void Binary_Less_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print 13 < 14;", "true" ),
-            ( "print 15 < 15;", "false" )
-        };
+        var input = """
+        print 13 < 14;
+        print 15 < 15;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "true", "false" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
 
@@ -270,13 +273,14 @@ internal static class AstInterpreterTests
     [Test]
     public static void Binary_LessEqual_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print 16 <= 16;", "true" ),
-            ( "print 18 <= 17;", "false" )
-        };
+        var input = """
+        print 16 <= 16;
+        print 18 <= 17;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "true", "false" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
     [Test]
@@ -299,31 +303,33 @@ internal static class AstInterpreterTests
     [Test]
     public static void Binary_BangEqual_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print 19 != 20;", "true" ),
-            ( "print 21 != 21;", "false" ),
-            ( "print nil != nil;", "false" ),
-            ( "print true != false;", "true" ),
-            ( "print nil != true;", "true" )
-        };
+        var input = """
+        print 19 != 20;
+        print 21 != 21;
+        print nil != nil;
+        print true != false;
+        print nil != true;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "true", "false", "false", "true", "true" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
     [Test]
     public static void Binary_EqualEqual_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print 19 == 20;", "false" ),
-            ( "print 21 == 21;", "true" ),
-            ( "print nil == nil;", "true" ),
-            ( "print true == false;", "false" ),
-            ( "print nil == true;", "false" )
-        };
+        var input = """
+        print 19 == 20;
+        print 21 == 21;
+        print nil == nil;
+        print true == false;
+        print nil == true;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "false", "true", "true", "false", "false" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
     #endregion
 
@@ -381,14 +387,15 @@ internal static class AstInterpreterTests
     [Test]
     public static void UnaryExpression_Minus_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print -1;", "-1" ),
-            ( "print -(-1);", "1" ),
-            ( "print --1;", "1" ),
-        };
+        var input = """
+        print -1;
+        print -(-1);
+        print --1;
+        """;
 
-        AssertInputsGenerateProperOutputs(values);
+        var expected = new string[] { "-1", "1", "1", };
+
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
     [Test]
@@ -404,19 +411,22 @@ internal static class AstInterpreterTests
     [Test]
     public static void UnaryExpression_Bang_Valid()
     {
-        var values = new List<(string, string)>
-        {
-            ( "print !nil;", "true" ),
-            ( "print !true;", "false" ),
-            ( "print !false;", "true" ),
-            ( "print !!true;", "true" ),
-            ( "print !!false;", "false" ),
-            ( "print !0;", "false" ),
-            ( "print !1;", "false" ),
-            ( "print !\"foo\";", "false" ),
+        var input = """
+        print !nil;
+        print !true;
+        print !false;
+        print !!true;
+        print !!false;
+        print !0;
+        print !1;
+        print !"foo";
+        """;
+
+        var expected = new string[] {
+            "true", "false", "true", "true", "false", "false", "false", "false",
         };
 
-        AssertInputsGenerateProperOutputs(values);
+        AssertInputGeneratesProperOutputs(input, expected);
     }
 
 
@@ -514,6 +524,112 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Function_InvalidArity()
+    {
+        var input = """
+        fun foo() { print true; }
+
+        foo( 1 );
+        """;
+
+        var expected = "Expected 0 arguments but got 1.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
+    public static void Function_NotAFunction()
+    {
+        var input = "true();";
+
+        var expected = "Can only call functions and classes.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
+    public static void Function_NoArgs()
+    {
+        var input = """
+        fun foo() { print true; }
+
+        foo();
+        """;
+
+        var expected = "true";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Function_WithArgs()
+    {
+        var input = """
+        fun foo( a, b, c ) { print a + b + c; }
+
+        foo( 1, 2, 3 );
+        """;
+
+        var expected = "6";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Function_Print()
+    {
+        var input = """
+        fun foo( a, b, c ) { print a + b + c; }
+
+        print foo;
+        """;
+
+        var expected = "<function foo>";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Function_ReturnStatement()
+    {
+        var input = """
+        fun foo( a, b, c ) { return a + b + c; }
+
+        print foo( 1, 2, 3);
+        """;
+
+        var expected = "6";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Function_LocalFunction()
+    {
+        var input = """
+        fun makeCounter() {
+            var i = 0;
+            
+            fun count() {
+                i = i + 1;
+                print i;
+            }
+
+            return count;
+        }
+
+        var counter = makeCounter();
+
+        counter(); // "1".
+        counter(); // "2".
+        """;
+
+        var expected = new string[] { "1", "2" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
     public static void If_True_NoElse()
     {
         var input = """
@@ -590,6 +706,55 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperOutputs(input, expected);
     }
 
+    #region Globals
+    [Test]
+    public static void Global_Clock()
+    {
+        var input = "print clock();";
+
+        ProcessInput(input);
+
+        Assert.That(output, Has.Count.EqualTo(1));
+        var parsed = int.TryParse(output[0], out var time);
+
+        Assert.That(parsed, Is.True);
+        Assert.That(time, Is.GreaterThan(0));
+    }
+
+    [Test]
+    public static void Global_Reset()
+    {
+        var input = """
+        var a = 1;
+
+        print a;
+
+        reset();
+
+        print a;
+        """;
+
+        AssertInputGeneratesExpected(input, "Undefined variable 'a'.", "1");
+    }
+
+    [Test]
+    public static void Global_FunctionsPrinted()
+    {
+        var input = """
+        print clock;
+        print reset;
+        """;
+
+        var expected = new string[]
+        {
+            "<function native>",
+            "<function native>",
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+    #endregion
+
     #region Helper Methods
     private static LoxRuntimeError? ProcessInput(string input)
     {
@@ -604,60 +769,49 @@ internal static class AstInterpreterTests
         return interpreter.Interpret(statements);
     }
 
-    private static void AssertInputGeneratesProperOutput(string input, string expected)
+    private static void AssertInputGeneratesProperOutput(string input, string expected) =>
+        AssertInputGeneratesExpected(input, null, expected);
+
+    private static void AssertInputGeneratesProperOutputs(string input, IEnumerable<string> expected) =>
+        AssertInputGeneratesExpected(input, null, expected);
+
+    private static void AssertInputGeneratesNoOutput(string input) =>
+        AssertInputGeneratesExpected(input, null);
+
+    private static void AssertInputGeneratesProperError(string input, string expected) =>
+        AssertInputGeneratesExpected(input, expected);
+
+    private static void AssertInputGeneratesExpected(string input, string? expectedError = null, params string[] expectedOutput) =>
+        AssertInputGeneratesExpected(input, expectedError, expectedOutput.ToList());
+
+    private static void AssertInputGeneratesExpected(string input, string? expectedError, IEnumerable<string> expectedOutput)
     {
         var error = ProcessInput(input);
 
-        Assert.That(error, Is.Null);
-
-        Assert.That(output, Has.Count.EqualTo(1));
-        Assert.That(output[0], Is.EqualTo(expected));
-    }
-
-    private static void AssertInputGeneratesProperOutputs(string input, List<string> expected)
-    {
-        var error = ProcessInput(input);
-
-        Assert.That(error, Is.Null);
-
-        Assert.That(output.Count, Is.EqualTo(expected.Count));
-        
-        for(var i = 0; i < expected.Count; i++)
+        if (expectedError == null)
         {
-            Assert.That(output[i], Is.EqualTo(expected[i]));
-        }
-    }
-
-    private static void AssertInputGeneratesNoOutput(string input)
-    {
-        var error = ProcessInput(input);
-
-        Assert.That(error, Is.Null);
-        Assert.That(output, Is.Empty);
-    }
-
-    private static void AssertInputsGenerateProperOutputs(List<(string, string)> values)
-    {
-        var i = 0;
-        foreach (var (input, expected) in values)
-        {
-            var error = ProcessInput(input);
-
             Assert.That(error, Is.Null);
-
-            Assert.That(output, Has.Count.EqualTo(i + 1));
-            Assert.That(output[i++], Is.EqualTo(expected));
         }
-    }
+        else
+        {
+            Assert.That(error, Has.Message.EqualTo(expectedError));
+        }
 
-    private static void AssertInputGeneratesProperError(string input, string expected)
-    {
-        var error = ProcessInput(input);
+        if (!expectedOutput.Any())
+        {
+            Assert.That(output, Is.Empty);
+        }
+        else
+        {
+            var expected = expectedOutput.ToArray();
 
-        Assert.That(error, Is.Not.Null);
-        Assert.That(error.Message, Is.EqualTo(expected));
+            Assert.That(output, Has.Count.EqualTo(expected.Length));
 
-        Assert.That(output, Is.Empty);
+            for (var i = 0; i < expected.Length; i++)
+            {
+                Assert.That(output[i], Is.EqualTo(expected[i]));
+            }
+        }
     }
     #endregion
 }

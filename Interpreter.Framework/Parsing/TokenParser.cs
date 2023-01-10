@@ -7,6 +7,8 @@ internal class TokenParser
     private readonly Token[] tokens;
     private int current = 0;
 
+    private const int ARG_LIMIT = 255;
+
     private List<ParseError> Errors { get; } = new();
 
     public TokenParser(IEnumerable<Token> tokens)
@@ -36,7 +38,11 @@ internal class TokenParser
     {
         try
         {
-            return Match(TokenType.VAR) ? VariableDeclaration() : Statement();
+            if (Match(TokenType.FUN)) return FunctionStatement("function");
+
+            if (Match(TokenType.VAR)) return VariableDeclaration();
+
+            return Statement();
         }
         catch (ParseError error)
         {
@@ -46,7 +52,38 @@ internal class TokenParser
         }
     }
 
-    public Statement VariableDeclaration()
+    private Statement FunctionStatement(string kind)
+    {
+        var name = Consume(TokenType.IDENTIFIER, $"Expect {kind} name.");
+
+        ConsumeCharacterAfter(TokenType.LEFT_PAREN, '(', $"{kind} name");
+
+        var parameters = new List<Token>();
+
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                parameters.Add(Consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            }
+            while (Match(TokenType.COMMA));
+        }
+
+        var paren = ConsumeCharacterAfter(TokenType.RIGHT_PAREN, ')', "parameters");
+
+        if (parameters.Count > ARG_LIMIT)
+        {
+            Errors.Add(new ParseError(paren, $"Can't have more than {ARG_LIMIT} parameters."));
+        }
+
+        ConsumeCharacterBefore(TokenType.LEFT_BRACE, '{', $"{kind} body");
+
+        var body = Block();
+
+        return new FunctionStatement(name, parameters, body);
+    }
+
+    private Statement VariableDeclaration()
     {
         var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
 
@@ -69,6 +106,8 @@ internal class TokenParser
 
         if (Match(TokenType.PRINT)) return PrintStatement();
 
+        if (Match(TokenType.RETURN)) return ReturnStatement();
+
         if (Match(TokenType.WHILE)) return WhileStatement();
 
         if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
@@ -78,7 +117,7 @@ internal class TokenParser
 
     private Statement ForStatement()
     {
-        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'for'");
+        ConsumeCharacterAfter(TokenType.LEFT_PAREN, '(', "'for'");
 
         Statement? initializer;
 
@@ -111,7 +150,7 @@ internal class TokenParser
             increment = Expression();
         }
 
-        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "for clauses");
+        ConsumeCharacterAfter(TokenType.RIGHT_PAREN, ')', "for clauses");
 
         var body = Statement();
 
@@ -134,11 +173,11 @@ internal class TokenParser
 
     private Statement IfStatement()
     {
-        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'if'");
+        ConsumeCharacterAfter(TokenType.LEFT_PAREN, '(', "'if'");
 
         var condition = Expression();
 
-        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "if condition");
+        ConsumeCharacterAfter(TokenType.RIGHT_PAREN, ')', "if condition");
 
         var thenBranch = Statement();
 
@@ -156,13 +195,29 @@ internal class TokenParser
         return new PrintStatement(value);
     }
 
+    private Statement ReturnStatement()
+    {
+        var keyword = Previous();
+
+        Expression value = new LiteralExpression(null);
+
+        if (!Check(TokenType.SEMICOLON))
+        {
+            value = Expression();
+        }
+
+        ConsumeSemicolon("return value");
+
+        return new ReturnStatement(keyword, value);
+    }
+
     private Statement WhileStatement()
     {
-        ConsumeCharacter(TokenType.LEFT_PAREN, '(', "'while'");
+        ConsumeCharacterAfter(TokenType.LEFT_PAREN, '(', "'while'");
 
         var condition = Expression();
 
-        ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "condition");
+        ConsumeCharacterAfter(TokenType.RIGHT_PAREN, ')', "condition");
 
         var body = Statement();
 
@@ -173,7 +228,7 @@ internal class TokenParser
     {
         var statements = new List<Statement>();
 
-        while(!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+        while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
         {
             var statement = Declaration();
 
@@ -183,7 +238,7 @@ internal class TokenParser
             }
         }
 
-        ConsumeCharacter(TokenType.RIGHT_BRACE, '}', "block");
+        ConsumeCharacterAfter(TokenType.RIGHT_BRACE, '}', "block");
 
         return statements;
     }
@@ -223,7 +278,7 @@ internal class TokenParser
     {
         var expression = And();
 
-        while(Match(TokenType.OR))
+        while (Match(TokenType.OR))
         {
             var op = Previous();
             var right = And();
@@ -312,7 +367,49 @@ internal class TokenParser
             return new UnaryExpression(op, right);
         }
 
-        return Primary();
+        return Call();
+    }
+
+    private Expression Call()
+    {
+        var expression = Primary();
+
+        while (true)
+        {
+            if (Match(TokenType.LEFT_PAREN))
+            {
+                expression = FinishCall(expression);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expression;
+    }
+
+    private Expression FinishCall(Expression callee)
+    {
+        var arguments = new List<Expression>();
+
+        if (!Check(TokenType.RIGHT_PAREN))
+        {
+            do
+            {
+                arguments.Add(Expression());
+            }
+            while (Match(TokenType.COMMA));
+        }
+
+        var paren = ConsumeCharacterAfter(TokenType.RIGHT_PAREN, ')', "arguments");
+
+        if (arguments.Count > ARG_LIMIT)
+        {
+            Errors.Add(new ParseError(paren, $"Can't have more than {ARG_LIMIT} arguments."));
+        }
+
+        return new CallExpression(callee, paren, arguments);
     }
 
     private Expression Primary()
@@ -328,7 +425,7 @@ internal class TokenParser
         if (Match(TokenType.LEFT_PAREN))
         {
             var expression = Expression();
-            ConsumeCharacter(TokenType.RIGHT_PAREN, ')', "expression");
+            ConsumeCharacterAfter(TokenType.RIGHT_PAREN, ')', "expression");
             return new GroupingExpression(expression);
         }
 
@@ -378,9 +475,11 @@ internal class TokenParser
         throw new ParseError(Peek(), errorMessage);
     }
 
-    private void ConsumeCharacter(TokenType token, char expected, string previous) => Consume(token, $"Expect '{expected}' after {previous}.");
+    private Token ConsumeCharacterBefore(TokenType token, char expected, string previous) => ConsumeCharacter(token, expected, "before", previous);
+    private Token ConsumeCharacterAfter(TokenType token, char expected, string previous) => ConsumeCharacter(token, expected, "after", previous);
+    private Token ConsumeCharacter(TokenType token, char expected, string where, string previous) => Consume(token, $"Expect '{expected}' {where} {previous}.");
 
-    private void ConsumeSemicolon(string previous) => ConsumeCharacter(TokenType.SEMICOLON, ';', previous);
+    private void ConsumeSemicolon(string previous) => ConsumeCharacterAfter(TokenType.SEMICOLON, ';', previous);
 
     private void Synchronize()
     {

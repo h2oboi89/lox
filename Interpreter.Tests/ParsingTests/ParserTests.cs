@@ -1,6 +1,7 @@
 ﻿using Interpreter.Framework.AST;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
+using System.Text;
 
 namespace Interpreter.Tests.ParsingTests;
 [TestFixture]
@@ -20,7 +21,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -34,7 +35,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -48,7 +49,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -62,7 +63,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -76,7 +77,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -90,7 +91,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -106,7 +107,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -143,7 +144,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -159,7 +160,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     #region Binary Expressions
@@ -177,7 +178,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -194,7 +195,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -211,7 +212,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -228,7 +229,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
 
@@ -246,7 +247,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -263,7 +264,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -280,7 +281,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -297,7 +298,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
 
@@ -315,7 +316,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
 
@@ -333,7 +334,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
     #endregion
 
@@ -350,7 +351,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -379,7 +380,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -396,9 +397,88 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
     #endregion
+
+    [Test]
+    public static void CallExpression_MissingCloseParen()
+    {
+        var input = "foo( 1;";
+
+        var expected = "Expect ')' after arguments.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+
+    [Test]
+    public static void CallExpression_TooManyArgs()
+    {
+        var argCount = 256;
+        var input = $"foo( {string.Join(", ", Enumerable.Repeat(1, argCount))} );";
+
+        var expectedOutput = new StringBuilder();
+        expectedOutput.AppendLine("( expression");
+        expectedOutput.AppendLine("    ( call");
+        expectedOutput.AppendLine("        ( callee");
+        expectedOutput.AppendLine("            ( foo )");
+        expectedOutput.AppendLine("        )");
+        expectedOutput.AppendLine("        ( arguments");
+        for(var i = 0; i < argCount; i++)
+        {
+            expectedOutput.AppendLine("            ( 1 )");
+        }
+        expectedOutput.AppendLine("        )");
+        expectedOutput.AppendLine("    )");
+        expectedOutput.Append(")");
+
+        var expectedError = "Can't have more than 255 arguments.";
+
+        AssertInputGeneratesExpected(input, expectedOutput.ToString(), expectedError);
+    }
+
+    [Test]
+    public static void CallExpression_NoArgs()
+    {
+        var input = "foo();";
+
+        var expected = """
+        ( expression
+            ( call
+                ( callee
+                    ( foo )
+                )
+                ( arguments )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void CallExpression_Args()
+    {
+        var input = "foo( 1, 2, 3 );";
+
+        var expected = """
+        ( expression
+            ( call
+                ( callee
+                    ( foo )
+                )
+                ( arguments
+                    ( 1 )
+                    ( 2 )
+                    ( 3 )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
     #endregion
 
     #region Statements
@@ -434,7 +514,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
 
@@ -517,7 +597,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -558,7 +638,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -601,7 +681,160 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_MissingName()
+    {
+        var input = "fun;";
+
+        var expected = "Expect function name.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_MissingLeftParen()
+    {
+        var input = "fun foo;";
+
+        var expected = "Expect '(' after function name.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_MissingRightParen()
+    {
+        var input = "fun foo( a;";
+
+        var expected = "Expect ')' after parameters.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_TooManyArgs()
+    {
+        var argCount = 256;
+        var parameters = new string[argCount];
+
+        for (var i = 0; i < argCount; i++) {
+            parameters[i] = $"a{i}";
+        }
+
+        var input = $"fun foo( {string.Join(", ", parameters)} ) {{ print true; }}";
+
+        var expectedOutput = new StringBuilder();
+        expectedOutput.AppendLine("( function foo");
+        expectedOutput.AppendLine("    ( parameters");
+        for (var i = 0; i < argCount; i++)
+        {
+            expectedOutput.AppendLine($"        ( a{i} )");
+        }
+        expectedOutput.AppendLine("    )");
+        expectedOutput.AppendLine("    ( body");
+        expectedOutput.AppendLine("        ( print");
+        expectedOutput.AppendLine("            ( true )");
+        expectedOutput.AppendLine("        )");
+        expectedOutput.AppendLine("    )");
+        expectedOutput.Append(")");
+
+        var expectedError = "Can't have more than 255 parameters.";
+
+        AssertInputGeneratesExpected(input, expectedOutput.ToString(), expectedError);
+    }
+
+    [Test]
+    public static void FunctionStatement_InvalidParameter()
+    {
+        var input = "fun foo( 1 ) { print true; }";
+
+        var expected = """
+        ( print
+            ( true )
+        )
+        """;
+
+        AssertInputGeneratesExpected(input, expected, "Expect parameter name.", "Expect expression.");
+    }
+
+    [Test]
+    public static void FunctionStatement_NoParameters()
+    {
+        var input = "fun foo() { print true; }";
+
+        var expected = """
+        ( function foo
+            ( parameters )
+            ( body
+                ( print
+                    ( true )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_WithParameters()
+    {
+        var input = "fun foo( a, b, c ) { print a + b + c; }";
+
+        var expected = """
+        ( function foo
+            ( parameters
+                ( a )
+                ( b )
+                ( c )
+            )
+            ( body
+                ( print
+                    ( +
+                        ( +
+                            ( a )
+                            ( b )
+                        )
+                        ( c )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_WithReturn()
+    {
+        var input = "fun foo( a, b, c ) { return a + b + c; }";
+
+        var expected = """
+        ( function foo
+            ( parameters
+                ( a )
+                ( b )
+                ( c )
+            )
+            ( body
+                ( return
+                    ( +
+                        ( +
+                            ( a )
+                            ( b )
+                        )
+                        ( c )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -624,7 +857,6 @@ internal static class ParserTests
         AssertInputGeneratesError(input, expected);
     }
 
-
     [Test]
     public static void IfStatement_NoElse()
     {
@@ -644,7 +876,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -675,7 +907,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -714,7 +946,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -728,7 +960,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -772,7 +1004,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -811,7 +1043,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -825,7 +1057,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -839,7 +1071,7 @@ internal static class ParserTests
         )
         """;
 
-        AssertThatInputGeneratesProperTree(input, expected);
+        AssertInputGeneratesProperTree(input, expected);
     }
     #endregion
 
@@ -858,24 +1090,39 @@ internal static class ParserTests
         return (statements.ToList(), parseErrors.Select(e => e.Message).ToList());
     }
 
-    private static void AssertThatInputGeneratesProperTree(string input, string expected)
+    private static void AssertInputGeneratesProperTree(string input, string expected) =>
+        AssertInputGeneratesExpected(input, expected);
+
+    private static void AssertInputGeneratesError(string input, params string[] expected) =>
+        AssertInputGeneratesExpected(input, null, expected);
+
+    private static void AssertInputGeneratesExpected(string input, string? expectedOutput = null, params string[] expectedErrors)
     {
         var (statements, parseErrors) = ProcessInput(input);
 
-        Assert.That(parseErrors, Is.Empty);
+        if (!expectedErrors.Any())
+        {
+            Assert.That(parseErrors, Is.Empty);
+        }
+        else
+        {
+            var errors = parseErrors.ToList();
+            Assert.That(errors, Has.Count.EqualTo(expectedErrors.Length));
 
-        Assert.That(printer.Print(statements), Is.EqualTo(expected));
-    }
+            for (var i = 0; i < errors.Count; i++)
+            {
+                Assert.That(errors[i], Is.EqualTo(expectedErrors[i]));
+            }
+        }
 
-    private static void AssertInputGeneratesError(string input, string expected)
-    {
-        var (statements, parseErrors) = ProcessInput(input);
-
-        var errors = parseErrors.ToList();
-        Assert.That(errors, Has.Count.EqualTo(1));
-        Assert.That(errors[0], Is.EqualTo(expected));
-
-        Assert.That(statements, Is.Empty);
+        if (expectedOutput == null)
+        {
+            Assert.That(statements, Is.Empty);
+        }
+        else
+        {
+            Assert.That(printer.Print(statements), Is.EqualTo(expectedOutput));
+        }
     }
     #endregion
 }

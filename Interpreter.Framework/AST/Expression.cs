@@ -7,6 +7,7 @@ public abstract record class Expression
     {
         T VisitAssignmentExpression(AssignmentExpression expression);
         T VisitBinaryExpression(BinaryExpression expression);
+        T VisitCallExpression(CallExpression expression);
         T VisitGroupingExpression(GroupingExpression expression);
         T VisitLiteralExpression(LiteralExpression expression);
         T VisitLogicalExpression(LogicalExpression expression);
@@ -25,6 +26,11 @@ public record class AssignmentExpression(Token Name, Expression Value) : Express
 public record class BinaryExpression(Expression Left, Token Operator, Expression Right) : Expression
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBinaryExpression(this);
+}
+
+public record class CallExpression(Expression Callee, Token Paren, List<Expression> Arguments) : Expression
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitCallExpression(this);
 }
 
 public record class GroupingExpression(Expression Expression) : Expression

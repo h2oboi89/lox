@@ -18,6 +18,7 @@ internal class Program
             {
                 "Assignment : Token Name, Expression Value",
                 "Binary     : Expression Left, Token Operator, Expression Right",
+                "Call       : Expression Callee, Token Paren, List<Expression> Arguments",
                 "Grouping   : Expression Expression",
                 "Literal    : object? Value",
                 "Logical    : Expression Left, Token Operator, Expression Right",
@@ -32,8 +33,10 @@ internal class Program
             {
                 "Block      : List<Statement> Statements",
                 "Expression : Expression Expression",
+                "Function   : Token Name, List<Token> Parameters, List<Statement> Body",
                 "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",
                 "Print      : Expression Expression",
+                "Return     : Token Keyword, Expression Value",
                 "Variable   : Token Name, Expression Initializer",
                 "While      : Expression Condition, Statement Body",
             }
