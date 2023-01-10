@@ -106,6 +106,8 @@ internal class TokenParser
 
         if (Match(TokenType.PRINT)) return PrintStatement();
 
+        if (Match(TokenType.RETURN)) return ReturnStatement();
+
         if (Match(TokenType.WHILE)) return WhileStatement();
 
         if (Match(TokenType.LEFT_BRACE)) return new BlockStatement(Block());
@@ -191,6 +193,22 @@ internal class TokenParser
         ConsumeSemicolon("value");
 
         return new PrintStatement(value);
+    }
+
+    private Statement ReturnStatement()
+    {
+        var keyword = Previous();
+
+        Expression value = new LiteralExpression(null);
+
+        if (!Check(TokenType.SEMICOLON))
+        {
+            value = Expression();
+        }
+
+        ConsumeSemicolon("return value");
+
+        return new ReturnStatement(keyword, value);
     }
 
     private Statement WhileStatement()

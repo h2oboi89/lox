@@ -809,6 +809,35 @@ internal static class ParserTests
     }
 
     [Test]
+    public static void FunctionStatement_WithReturn()
+    {
+        var input = "fun foo( a, b, c ) { return a + b + c; }";
+
+        var expected = """
+        ( function foo
+            ( parameters
+                ( a )
+                ( b )
+                ( c )
+            )
+            ( body
+                ( return
+                    ( +
+                        ( +
+                            ( a )
+                            ( b )
+                        )
+                        ( c )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
     public static void IfStatement_MissingLeftParen()
     {
         var input = "if 3;";

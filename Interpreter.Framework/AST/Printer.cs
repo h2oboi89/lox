@@ -129,7 +129,10 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     
     public string VisitPrintStatement(PrintStatement statement) =>
         Parenthesize("print", statement.Expression);
-    
+
+    public string VisitReturnStatement(ReturnStatement statement) =>
+        Parenthesize("return", statement.Value);
+
     public string VisitVariableStatement(VariableStatement statement) =>
         Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
 

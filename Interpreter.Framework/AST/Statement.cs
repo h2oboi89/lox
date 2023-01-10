@@ -10,6 +10,7 @@ public abstract record class Statement
         T VisitFunctionStatement(FunctionStatement statement);
         T VisitIfStatement(IfStatement statement);
         T VisitPrintStatement(PrintStatement statement);
+        T VisitReturnStatement(ReturnStatement statement);
         T VisitVariableStatement(VariableStatement statement);
         T VisitWhileStatement(WhileStatement statement);
     }
@@ -40,6 +41,11 @@ public record class IfStatement(Expression Condition, Statement ThenBranch, Stat
 public record class PrintStatement(Expression Expression) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitPrintStatement(this);
+}
+
+public record class ReturnStatement(Token Keyword, Expression Value) : Statement
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitReturnStatement(this);
 }
 
 public record class VariableStatement(Token Name, Expression Initializer) : Statement

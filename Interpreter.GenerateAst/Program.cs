@@ -36,6 +36,7 @@ internal class Program
                 "Function   : Token Name, List<Token> Parameters, List<Statement> Body",
                 "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",
                 "Print      : Expression Expression",
+                "Return     : Token Keyword, Expression Value",
                 "Variable   : Token Name, Expression Initializer",
                 "While      : Expression Condition, Statement Body",
             }

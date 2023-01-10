@@ -196,6 +196,9 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
+    public object? VisitReturnStatement(ReturnStatement statement) =>
+        throw new Return(Evaluate(statement.Value));
+
     public object? VisitVariableStatement(VariableStatement statement)
     {
         var value = Evaluate(statement.Initializer);

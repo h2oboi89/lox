@@ -590,6 +590,20 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Function_ReturnStatement()
+    {
+        var input = """
+        fun foo( a, b, c ) { return a + b + c; }
+
+        print foo( 1, 2, 3);
+        """;
+
+        var expected = "6";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
     public static void If_True_NoElse()
     {
         var input = """

@@ -14,12 +14,19 @@ internal class LoxFunction : LoxCallable
         var environment = new Environment(interpreter.Globals);
         var args = arguments.ToList();
 
-        for(var i = 0; i < declaration.Parameters.Count; i++)
+        for (var i = 0; i < declaration.Parameters.Count; i++)
         {
             environment.Define(declaration.Parameters[i].Lexeme, args[i]);
         }
 
-        interpreter.ExecuteBlock(declaration.Body, environment);
+        try
+        {
+            interpreter.ExecuteBlock(declaration.Body, environment);
+        }
+        catch (Return returnValue)
+        {
+            return returnValue.Value;
+        }
 
         return null;
     }
