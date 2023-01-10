@@ -166,7 +166,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     public object? VisitFunctionStatement(FunctionStatement statement)
     {
-        var function = new LoxFunction(statement);
+        var function = new LoxFunction(statement, environment);
 
         environment.Define(statement.Name.Lexeme, function);
 

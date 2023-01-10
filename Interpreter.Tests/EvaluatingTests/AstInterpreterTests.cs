@@ -604,6 +604,32 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Function_LocalFunction()
+    {
+        var input = """
+        fun makeCounter() {
+            var i = 0;
+            
+            fun count() {
+                i = i + 1;
+                print i;
+            }
+
+            return count;
+        }
+
+        var counter = makeCounter();
+
+        counter(); // "1".
+        counter(); // "2".
+        """;
+
+        var expected = new string[] { "1", "2" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
     public static void If_True_NoElse()
     {
         var input = """
