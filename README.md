@@ -24,7 +24,7 @@ NOTE: some sections do not contain a tag link as they only represent a partial s
   - this tag fixes some missing code that should have been in Scanning tag.
 - [x] [Evaluating Expressions](http://craftinginterpreters.com/evaluating-expressions.html) : [EvaluatingExpressions](https://github.com/h2oboi89/lox/releases/tag/EvaluatingExpressions)
 - [x] [Statements and State](http://craftinginterpreters.com/statements-and-state.html) : [Statements](https://github.com/h2oboi89/lox/releases/tag/Statements)
-- [ ] [Control Flow](http://craftinginterpreters.com/control-flow.html)
+- [x] [Control Flow](http://craftinginterpreters.com/control-flow.html) : [ControlFlow](https://github.com/h2oboi89/lox/releases/tag/ControlFlow)
 - [ ] [Functions](http://craftinginterpreters.com/functions.html)
 - [ ] [Resolving and Binding](http://craftinginterpreters.com/resolving-and-binding.html)
 - [ ] [Classes](http://craftinginterpreters.com/classes.html)
