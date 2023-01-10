@@ -7,8 +7,15 @@ program        → declaration* EOF ;
 
 ## Statements
 ```
-declaration     → varDecl
+declaration     → funDecl
+                | varDecl
                 | statement ;
+
+funDecl         → "fun" function ;
+
+function        → IDENTIFIER "(" paramters? ")" block ;
+
+parameters      → IDENTIFIER ( "," IDENTIFIER )* ;
 
 varDecl         → "var" IDENTIFIER ( "=" expression )? ";" ;               
 
@@ -52,7 +59,11 @@ term            → factor ( ( "-" | "+" ) factor )* ;
 factor          → unary ( ( "/" | "*" ) unary )* ;
 
 unary           → ( "!" | "-" ) unary 
-                | primary ;
+                | call ;
+
+call            → primary ( "(" arguments? ")" )* ;
+
+arguments       → expression ( "," expression )* ;
 
 primary         → NUMBER 
                 | STRING 

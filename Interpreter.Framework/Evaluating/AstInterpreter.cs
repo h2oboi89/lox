@@ -1,19 +1,27 @@
 ﻿using Interpreter.Framework.AST;
+using Interpreter.Framework.Evaluating.Globals;
 using Interpreter.Framework.Scanning;
 
 namespace Interpreter.Framework.Evaluating;
 public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<object?>
 {
-    private Environment environment = new();
+    internal readonly Environment Globals = new();
+    private Environment environment;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public AstInterpreter()
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
         Reset();
     }
 
     public void Reset()
     {
-        environment = new Environment();
+        Globals.Clear();
+        environment = Globals;
+
+        Globals.Define("clock", new Clock());
+        Globals.Define("reset", new Reset());
     }
 
     public LoxRuntimeError? Interpret(IEnumerable<Statement> statements)
@@ -37,6 +45,15 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     private void RaiseOut(string message) => Out?.Invoke(this, new InterpreterOutEventArgs(message));
 
     #region Expressions
+    public object? VisitAssignmentExpression(AssignmentExpression expression)
+    {
+        var value = Evaluate(expression.Value);
+
+        environment.Assign(expression.Name, value);
+
+        return value;
+    }
+
     public object? VisitBinaryExpression(BinaryExpression expression)
     {
         var left = Evaluate(expression.Left);
@@ -76,6 +93,27 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         public static Func<(double, double), bool> LessEqual => ((double left, double right) operands) => operands.left <= operands.right;
     }
 
+    public object? VisitCallExpression(CallExpression expression)
+    {
+        var callee = Evaluate(expression.Callee);
+
+        var arguments = expression.Arguments.Select(Evaluate).ToArray();
+
+        if (callee is ILoxCallable function)
+        {
+            if (arguments.Length != function.Arity)
+            {
+                throw new LoxRuntimeError(expression.Paren, $"Expected {function.Arity} arguments but got {arguments.Length}.");
+            }
+
+            return function.Call(this, arguments);
+        }
+        else
+        {
+            throw new LoxRuntimeError(expression.Paren, "Can only call functions and classes.");
+        }
+    }
+
     public object? VisitGroupingExpression(GroupingExpression expression) => Evaluate(expression.Expression);
 
     public object? VisitLiteralExpression(LiteralExpression expression) => expression.Value;
@@ -110,15 +148,6 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     }
 
     public object? VisitVariableExpression(VariableExpression expression) => environment.Get(expression.Name);
-
-    public object? VisitAssignmentExpression(AssignmentExpression expression)
-    {
-        var value = Evaluate(expression.Value);
-
-        environment.Assign(expression.Name, value);
-
-        return value;
-    }
     #endregion
 
     #region Statements
@@ -131,6 +160,15 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     public object? VisitExpressionStatement(ExpressionStatement statement)
     {
         Evaluate(statement.Expression);
+
+        return null;
+    }
+
+    public object? VisitFunctionStatement(FunctionStatement statement)
+    {
+        var function = new LoxFunction(statement);
+
+        environment.Define(statement.Name.Lexeme, function);
 
         return null;
     }
@@ -158,20 +196,21 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
-    public object? VisitWhileStatement(WhileStatement statement)
-    {
-        while (IsTruthy(Evaluate(statement.Condition))) {
-            Execute(statement.Body);
-        }
-
-        return null;
-    }
-
     public object? VisitVariableStatement(VariableStatement statement)
     {
         var value = Evaluate(statement.Initializer);
 
         environment.Define(statement.Name.Lexeme, value);
+
+        return null;
+    }
+
+    public object? VisitWhileStatement(WhileStatement statement)
+    {
+        while (IsTruthy(Evaluate(statement.Condition)))
+        {
+            Execute(statement.Body);
+        }
 
         return null;
     }
@@ -182,7 +221,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     private void Execute(Statement statement) => statement.Accept(this);
 
-    private void ExecuteBlock(IEnumerable<Statement> statements, Environment environment)
+    internal void ExecuteBlock(IEnumerable<Statement> statements, Environment environment)
     {
         var previous = this.environment;
 

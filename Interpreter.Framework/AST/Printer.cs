@@ -22,6 +22,23 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     public string VisitBinaryExpression(BinaryExpression expression) =>
         Parenthesize(expression.Operator.Lexeme, expression.Left, expression.Right);
 
+    public string VisitCallExpression(CallExpression expression)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"{Indent()}( call");
+        indentLevel++;
+
+        sb.AppendLine(Parenthesize("callee", expression.Callee));
+
+        sb.AppendLine(Parenthesize("arguments", expression.Arguments));
+
+        indentLevel--;
+        sb.Append($"{Indent()})");
+
+        return sb.ToString();
+    }
+
     public string VisitGroupingExpression(GroupingExpression expression) =>
         Parenthesize("group", expression.Expression);
 
@@ -45,6 +62,45 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
     #endregion
 
     #region Statements
+    public string VisitBlockStatement(BlockStatement statement) =>
+        Parenthesize("block", statement.Statements);
+
+    public string VisitExpressionStatement(ExpressionStatement statement) =>
+        Parenthesize("expression", statement.Expression);
+
+    public string VisitFunctionStatement(FunctionStatement statement)
+    {
+        var sb = new StringBuilder();
+
+        sb.AppendLine($"{Indent()}( function {statement.Name.Lexeme}");
+        indentLevel++;
+
+        if (!statement.Parameters.Any())
+        {
+            sb.AppendLine($"{Indent()}( parameters )");
+        }
+        else
+        {
+            sb.AppendLine($"{Indent()}( parameters");
+            indentLevel++;
+
+            foreach (var parameter in statement.Parameters)
+            {
+                sb.AppendLine($"{Indent()}( {parameter.Lexeme} )");
+            }
+
+            indentLevel--;
+            sb.AppendLine($"{Indent()})");
+        }
+
+        sb.AppendLine(Parenthesize("body", statement.Body));
+
+        indentLevel--;
+        sb.Append($"{Indent()})");
+
+        return sb.ToString();
+    }
+
     public string VisitIfStatement(IfStatement statement)
     {
         var sb = new StringBuilder();
@@ -70,16 +126,12 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
         return sb.ToString();
     }
-
-
+    
     public string VisitPrintStatement(PrintStatement statement) =>
         Parenthesize("print", statement.Expression);
-
-    public string VisitBlockStatement(BlockStatement statement) =>
-        Parenthesize("block", statement.Statements);
-
-    public string VisitExpressionStatement(ExpressionStatement statement) =>
-        Parenthesize("expression", statement.Expression);
+    
+    public string VisitVariableStatement(VariableStatement statement) =>
+        Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
 
     public string VisitWhileStatement(WhileStatement statement)
     {
@@ -97,9 +149,6 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
         return sb.ToString();
     }
-
-    public string VisitVariableStatement(VariableStatement statement) =>
-        Parenthesize($"var {statement.Name.Lexeme} =", statement.Initializer);
     #endregion
 
     #region Helper Methods

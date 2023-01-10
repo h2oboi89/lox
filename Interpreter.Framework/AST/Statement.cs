@@ -7,6 +7,7 @@ public abstract record class Statement
     {
         T VisitBlockStatement(BlockStatement statement);
         T VisitExpressionStatement(ExpressionStatement statement);
+        T VisitFunctionStatement(FunctionStatement statement);
         T VisitIfStatement(IfStatement statement);
         T VisitPrintStatement(PrintStatement statement);
         T VisitVariableStatement(VariableStatement statement);
@@ -24,6 +25,11 @@ public record class BlockStatement(List<Statement> Statements) : Statement
 public record class ExpressionStatement(Expression Expression) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitExpressionStatement(this);
+}
+
+public record class FunctionStatement(Token Name, List<Token> Parameters, List<Statement> Body) : Statement
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitFunctionStatement(this);
 }
 
 public record class IfStatement(Expression Condition, Statement ThenBranch, Statement? ElseBranch) : Statement
