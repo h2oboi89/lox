@@ -2,6 +2,7 @@
 using Interpreter.Framework.Evaluating;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
+using Interpreter.Framework.StaticAnalysis;
 
 namespace Interpreter.Tests.EvaluatingTests;
 internal static class AstInterpreterTests
@@ -765,6 +766,10 @@ internal static class AstInterpreterTests
         var (statements, parseErrors) = Parser.Parse(tokens);
 
         Assert.That(parseErrors, Is.Empty);
+
+        var scopeErrors = Resolver.Resolve(interpreter, statements);
+
+        Assert.That(scopeErrors, Is.Empty);
 
         return interpreter.Interpret(statements);
     }
