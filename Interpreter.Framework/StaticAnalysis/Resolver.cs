@@ -41,7 +41,7 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
     {
         Resolve(expression.Callee);
 
-        foreach(var argument in expression.Arguments)
+        foreach (var argument in expression.Arguments)
         {
             Resolve(argument);
         }
@@ -49,9 +49,15 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
         return null;
     }
 
+    public object? VisitGetExpression(GetExpression expression)
+    {
+        Resolve(expression.LoxObject);
+        return null;
+    }
+
     public object? VisitGroupingExpression(GroupingExpression expression)
     {
-        Resolve(expression.Expression); 
+        Resolve(expression.Expression);
         return null;
     }
 
@@ -67,6 +73,24 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
         return null;
     }
 
+    public object? VisitSetExpression(SetExpression expression)
+    {
+        Resolve(expression.Value);
+        Resolve(expression.LoxObject);
+        return null;
+    }
+
+    public object? VisitThisExpression(ThisExpression expression)
+    {
+        if (!scope.InClass)
+        {
+            errors.Add(new ScopeError(expression.Keyword, "Can't use 'this' outside of a class."));
+            return null;
+        }
+        ResolveLocal(expression, expression.Keyword);
+        return null;
+    }
+
     public object? VisitUnaryExpression(UnaryExpression expression)
     {
         Resolve(expression.Right);
@@ -75,8 +99,7 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
 
     public object? VisitVariableExpression(VariableExpression expression)
     {
-        if (
-            scope.IsDeclared(expression.Name.Lexeme) && 
+        if (scope.IsDeclared(expression.Name.Lexeme) &&
             !scope.IsDefined(expression.Name.Lexeme))
         {
             errors.Add(new ScopeError(expression.Name, "Can't read local variable in its own initializer."));
@@ -96,6 +119,26 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
         return null;
     }
 
+    public object? VisitClassStatement(ClassStatement statement)
+    {
+        Initialize(statement.Name);
+
+        scope.EnterClass();
+
+        foreach (var method in statement.Methods)
+        {
+            var functionType = LoxClass.IsInitializer(method.Name.Lexeme) ?
+                Scope.FunctionType.Initializer :
+                Scope.FunctionType.Method;
+
+            ResolveFunction(method, functionType);
+        }
+
+        scope.ExitClass();
+
+        return null;
+    }
+
     public object? VisitExpressionStatement(ExpressionStatement statement)
     {
         Resolve(statement.Expression);
@@ -104,8 +147,7 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
 
     public object? VisitFunctionStatement(FunctionStatement statement)
     {
-        Declare(statement.Name);
-        Define(statement.Name);
+        Initialize(statement.Name);
 
         ResolveFunction(statement, Scope.FunctionType.Function);
         return null;
@@ -135,14 +177,26 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
             errors.Add(new ScopeError(statement.Keyword, "Can't return from top-level code."));
         }
 
-        Resolve(statement.Value);
+        if (statement.Value != null)
+        {
+            if (scope.InInitializer)
+            {
+                errors.Add(new ScopeError(statement.Keyword, "Can't return a value from an initializer."));
+            }
+
+            Resolve(statement.Value);
+        }
+
         return null;
     }
 
     public object? VisitVariableStatement(VariableStatement statement)
     {
         Declare(statement.Name);
-        Resolve(statement.Initializer);
+        if (statement.Initializer != null)
+        {
+            Resolve(statement.Initializer);
+        }
         Define(statement.Name);
         return null;
     }
@@ -150,7 +204,7 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
     public object? VisitWhileStatement(WhileStatement statement)
     {
         Resolve(statement.Condition);
-        Resolve(statement.Body); 
+        Resolve(statement.Body);
         return null;
     }
     #endregion
@@ -174,10 +228,9 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
     {
         scope.EnterFunction(type);
 
-        foreach(var token in function.Parameters)
+        foreach (var token in function.Parameters)
         {
-            Declare(token);
-            Define(token);
+            Initialize(token);
         }
         Resolve(function.Body);
 
@@ -192,9 +245,8 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
         }
     }
 
-    private void Define(Token name)
-    {
-        scope.Define(name.Lexeme);
-    }
+    private void Define(Token name) => scope.Define(name.Lexeme);
+
+    private bool Initialize(Token name) => scope.Initialize(name.Lexeme);
     #endregion
 }

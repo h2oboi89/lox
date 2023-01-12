@@ -22,8 +22,8 @@ internal class Environment
         throw UndefinedVariableError(name);
     }
 
-    public object? GetAt(int distance, Token name) => 
-        Ancestor(distance).Get(name);
+    public object? GetAt(int distance, string name) =>
+        Ancestor(distance).values[name];
 
     public void Assign(Token name, object? value)
     {
@@ -47,20 +47,21 @@ internal class Environment
 
     private static LoxRuntimeError UndefinedVariableError(Token name) => new(name, $"Undefined variable '{name.Lexeme}'.");
 
+
     private Environment Ancestor(int distance)
     {
-        // Resolver ensure we don't run into null reference issues
+        //NOTE: resolver ensures we avoid null reference issues
         var environment = this;
 
         for (var i = 0; i < distance; i++)
         {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
             environment = environment.enclosing;
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
+#pragma warning restore CS8602
         }
 
 #pragma warning disable CS8603 // Possible null reference return.
         return environment;
-#pragma warning restore CS8603 // Possible null reference return.
+#pragma warning restore CS8603
     }
 }

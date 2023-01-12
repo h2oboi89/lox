@@ -19,9 +19,12 @@ internal class Program
                 "Assignment : Token Name, Expression Value",
                 "Binary     : Expression Left, Token Operator, Expression Right",
                 "Call       : Expression Callee, Token Paren, List<Expression> Arguments",
+                "Get        : Expression LoxObject, Token Name",
                 "Grouping   : Expression Expression",
                 "Literal    : object? Value",
                 "Logical    : Expression Left, Token Operator, Expression Right",
+                "Set        : Expression LoxObject, Token Name, Expression Value",
+                "This       : Token Keyword",
                 "Unary      : Token Operator, Expression Right",
                 "Variable   : Token Name",
             }
@@ -32,12 +35,13 @@ internal class Program
             new string[]
             {
                 "Block      : List<Statement> Statements",
+                "Class      : Token Name, List<FunctionStatement> Methods",
                 "Expression : Expression Expression",
                 "Function   : Token Name, List<Token> Parameters, List<Statement> Body",
                 "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",
                 "Print      : Expression Expression",
-                "Return     : Token Keyword, Expression Value",
-                "Variable   : Token Name, Expression Initializer",
+                "Return     : Token Keyword, Expression? Value",
+                "Variable   : Token Name, Expression? Initializer",
                 "While      : Expression Condition, Statement Body",
             }
         );

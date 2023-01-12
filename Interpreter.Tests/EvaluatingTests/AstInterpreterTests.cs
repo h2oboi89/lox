@@ -499,6 +499,83 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Class_Minimal()
+    {
+        var input = """
+        class Foo { }
+
+        var foo = Foo();
+
+        print Foo;
+        print foo;
+        """;
+
+        var expected = new string[] { "Foo", "Foo instance" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
+    public static void Class_WithMethods()
+    {
+        var input = """
+        class Foo {
+            init() { 
+                this.baz = 1; 
+            }
+
+            bar() { 
+                print this.baz;
+            }
+        }
+
+        var foo = Foo();
+
+        foo.bar();
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Get_OnlyOnInstance()
+    {
+        var input = "1.ToString();";
+
+        var expected = "Only instances have properties.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
+    public static void Get_Undefined()
+    {
+        var input = """
+        class Foo { }
+
+        var foo = Foo();
+
+        print foo.bar;
+        """;
+
+        var expected = "Undefined property 'bar'.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
+    public static void Set_OnlyOnInstance()
+    {
+        var input = "1.foo = 2;";
+
+        var expected = "Only instances have fields.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
     public static void For()
     {
         var input = """
@@ -600,6 +677,23 @@ internal static class AstInterpreterTests
         """;
 
         var expected = "6";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Function_EarlyReturn()
+    {
+        var input = """
+        fun foo( a, b, c ) {
+            return;
+            return a + b + c; 
+        }
+
+        print foo( 1, 2, 3);
+        """;
+
+        var expected = "nil";
 
         AssertInputGeneratesProperOutput(input, expected);
     }

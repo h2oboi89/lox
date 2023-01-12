@@ -7,17 +7,27 @@ internal class Scope
     private readonly AstInterpreter interpreter;
     private ScopeLevel? scope = null;
     private readonly Stack<FunctionType> currentFunction = new();
+    private readonly Stack<ClassType> currentClass = new();
 
     public enum FunctionType
     {
         None,
         Function,
+        Initializer,
+        Method,
+    }
+
+    public enum ClassType
+    {
+        None,
+        Class,
     }
 
     public Scope(AstInterpreter interpreter)
     {
         this.interpreter = interpreter;
         currentFunction.Push(FunctionType.None);
+        currentClass.Push(ClassType.None);
     }
 
     public void EnterBlock() => scope = new ScopeLevel(scope);
@@ -36,17 +46,41 @@ internal class Scope
         currentFunction.Pop();
     }
 
+    public void EnterClass()
+    {
+        currentClass.Push(ClassType.Class);
+        EnterBlock();
+        Initialize(LoxInstance.THIS);
+    }
+
+    public void ExitClass()
+    {
+        ExitBlock();
+        currentClass.Pop();
+    }
+
     public bool Declare(string name) => scope?.Declare(name) ?? true;
 
     public void Define(string name) => scope?.Define(name);
 
+    public bool Initialize(string name)
+    {
+        if (!Declare(name)) return false;
+        Define(name);
+        return true;
+    }
+
     public bool InFunction => currentFunction.Peek() != FunctionType.None;
+
+    public bool InInitializer => currentFunction.Peek() == FunctionType.Initializer;
+
+    public bool InClass => currentClass.Peek() != ClassType.None;
 
     public bool IsDeclared(string name) => scope?.IsDeclared(name) ?? false;
 
     public bool IsDefined(string name) => scope?.IsDefined(name) ?? false;
 
-    public void ResolveLocal(Expression expression, string name) => scope?.ResolveLocal(interpreter, expression, name, -1);
+    public void ResolveLocal(Expression expression, string name) => scope?.ResolveLocal(interpreter, expression, name, 0);
 
     class ScopeLevel
     {
@@ -77,8 +111,10 @@ internal class Scope
             {
                 interpreter.Resolve(expression, distance);
             }
-
-            Previous?.ResolveLocal(interpreter, expression, name, distance + 1);
+            else
+            {
+                Previous?.ResolveLocal(interpreter, expression, name, distance + 1);
+            }
         }
     }
 }

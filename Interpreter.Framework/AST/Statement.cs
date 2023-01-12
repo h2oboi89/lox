@@ -6,6 +6,7 @@ public abstract record class Statement
     public interface IVisitor<T>
     {
         T VisitBlockStatement(BlockStatement statement);
+        T VisitClassStatement(ClassStatement statement);
         T VisitExpressionStatement(ExpressionStatement statement);
         T VisitFunctionStatement(FunctionStatement statement);
         T VisitIfStatement(IfStatement statement);
@@ -21,6 +22,11 @@ public abstract record class Statement
 public record class BlockStatement(List<Statement> Statements) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBlockStatement(this);
+}
+
+public record class ClassStatement(Token Name, List<FunctionStatement> Methods) : Statement
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitClassStatement(this);
 }
 
 public record class ExpressionStatement(Expression Expression) : Statement
@@ -43,12 +49,12 @@ public record class PrintStatement(Expression Expression) : Statement
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitPrintStatement(this);
 }
 
-public record class ReturnStatement(Token Keyword, Expression Value) : Statement
+public record class ReturnStatement(Token Keyword, Expression? Value) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitReturnStatement(this);
 }
 
-public record class VariableStatement(Token Name, Expression Initializer) : Statement
+public record class VariableStatement(Token Name, Expression? Initializer) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitVariableStatement(this);
 }

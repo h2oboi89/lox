@@ -254,9 +254,10 @@ internal static class ScannerTests
         Assert.That(JoinTokens(tokens, string.Empty), Is.EqualTo("1 EOF"));
     }
 
-    private static void AssertInputsGenerateErrors(List<(string input , string expected)> inputs)
+    private static void AssertInputsGenerateErrors(List<(string input, string expected)> inputs)
     {
-        foreach(var (input, expected) in inputs) {
+        foreach (var (input, expected) in inputs)
+        {
             AssertInputGeneratesError(input, expected);
         }
     }

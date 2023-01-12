@@ -38,6 +38,8 @@ internal class TokenParser
     {
         try
         {
+            if (Match(TokenType.CLASS)) return ClassDeclaration();
+
             if (Match(TokenType.FUN)) return FunctionStatement("function");
 
             if (Match(TokenType.VAR)) return VariableDeclaration();
@@ -52,7 +54,25 @@ internal class TokenParser
         }
     }
 
-    private Statement FunctionStatement(string kind)
+    private Statement ClassDeclaration()
+    {
+        var name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+
+        ConsumeCharacterBefore(TokenType.LEFT_BRACE, '{', "class body");
+
+        var methods = new List<FunctionStatement>();
+
+        while (!Check(TokenType.RIGHT_BRACE) && !IsAtEnd())
+        {
+            methods.Add(FunctionStatement("method"));
+        }
+
+        ConsumeCharacterAfter(TokenType.RIGHT_BRACE, '}', "class body");
+
+        return new ClassStatement(name, methods);
+    }
+
+    private FunctionStatement FunctionStatement(string kind)
     {
         var name = Consume(TokenType.IDENTIFIER, $"Expect {kind} name.");
 
@@ -87,7 +107,7 @@ internal class TokenParser
     {
         var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
 
-        Expression initializer = new LiteralExpression(null);
+        Expression? initializer = null;
         if (Match(TokenType.EQUAL))
         {
             initializer = Expression();
@@ -199,7 +219,7 @@ internal class TokenParser
     {
         var keyword = Previous();
 
-        Expression value = new LiteralExpression(null);
+        Expression? value = null;
 
         if (!Check(TokenType.SEMICOLON))
         {
@@ -266,6 +286,10 @@ internal class TokenParser
             if (expression is VariableExpression variableExpression)
             {
                 return new AssignmentExpression(variableExpression.Name, value);
+            }
+            else if (expression is GetExpression getExpression)
+            {
+                return new SetExpression(getExpression.LoxObject, getExpression.Name, value);
             }
 
             throw new ParseError(equals, "Invalid assignment target.");
@@ -380,6 +404,11 @@ internal class TokenParser
             {
                 expression = FinishCall(expression);
             }
+            else if (Match(TokenType.DOT))
+            {
+                var name = Consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+                expression = new GetExpression(expression, name);
+            }
             else
             {
                 break;
@@ -419,6 +448,8 @@ internal class TokenParser
         if (Match(TokenType.NIL)) return new LiteralExpression(null);
 
         if (Match(TokenType.NUMBER, TokenType.STRING)) return new LiteralExpression(Previous().Literal);
+
+        if (Match(TokenType.THIS)) return new ThisExpression(Previous());
 
         if (Match(TokenType.IDENTIFIER)) return new VariableExpression(Previous());
 

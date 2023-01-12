@@ -54,6 +54,26 @@ internal static class ResolverTests
         AssertInputGeneratesError(input, expected);
     }
 
+    [Test]
+    public static void This_OutsideClass()
+    {
+        var input = "print this;";
+
+        var expected = "Can't use 'this' outside of a class.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void Initializer_CannotReturnValue()
+    {
+        var input = "class foo { init() { return 1; } }";
+
+        var expected = "Can't return a value from an initializer.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
     #region Helper Methods
     private static void AssertInputGeneratesError(string input, string expected)
     {
