@@ -5,7 +5,7 @@ namespace Interpreter.Framework.StaticAnalysis;
 internal class Scope
 {
     private readonly AstInterpreter interpreter;
-    private readonly LinkedList<ScopeLevel> scopes = new();
+    private ScopeLevel? scope = null;
     private readonly Stack<FunctionType> currentFunction = new();
 
     public enum FunctionType
@@ -20,9 +20,9 @@ internal class Scope
         currentFunction.Push(FunctionType.None);
     }
 
-    public void EnterBlock() => scopes.AddLast(new ScopeLevel());
+    public void EnterBlock() => scope = new ScopeLevel(scope);
 
-    public void ExitBlock() => scopes.RemoveLast();
+    public void ExitBlock() => scope = scope?.Previous;
 
     public void EnterFunction(FunctionType type)
     {
@@ -36,24 +36,24 @@ internal class Scope
         currentFunction.Pop();
     }
 
-    public bool Declare(string name) => scopes?.Last?.Value.Declare(name) ?? true;
+    public bool Declare(string name) => scope?.Declare(name) ?? true;
 
-    public void Define(string name) => scopes?.Last?.Value.Define(name);
+    public void Define(string name) => scope?.Define(name);
 
     public bool InFunction => currentFunction.Peek() != FunctionType.None;
 
-    public bool IsDeclared(string name) => scopes?.Last?.Value.IsDeclared(name) ?? false;
+    public bool IsDeclared(string name) => scope?.IsDeclared(name) ?? false;
 
-    public bool IsDefined(string name) => scopes?.Last?.Value.IsDefined(name) ?? false;
+    public bool IsDefined(string name) => scope?.IsDefined(name) ?? false;
 
     public void ResolveLocal(Expression expression, string name)
     {
         var distance = 0;
-        var scope = scopes.Last;
+        var scope = this.scope;
 
         while (scope != null)
         {
-            if (scope.Value.IsDeclared(name))
+            if (scope.IsDeclared(name))
             {
                 interpreter.Resolve(expression, distance);
                 return;
@@ -67,6 +67,10 @@ internal class Scope
     class ScopeLevel
     {
         private readonly Dictionary<string, bool> values = new();
+
+        public readonly ScopeLevel? Previous;
+
+        public ScopeLevel(ScopeLevel? previous) { Previous = previous; }
 
         public bool Declare(string name)
         {
