@@ -756,6 +756,82 @@ internal static class AstInterpreterTests
     }
     #endregion
 
+    #region Resolving
+    [Test]
+    public static void Variable_Preceding()
+    {
+        var input = """
+        var a = "outer";
+
+        {
+            print a;
+            var a = "inner";
+        }
+        """;
+
+        var expected = "outer";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Variable_Innermost()
+    {
+        var input = """
+        var a = "outer";
+
+        {
+            var a = "inner";
+            print a;
+        }
+        """;
+
+        var expected = "inner";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Variable_InnerShadowOfGlobal()
+    {
+        var input = """
+        var a = "global";
+
+        {
+            fun showA() {
+                print a;
+            }
+
+            showA();
+            var a = "block";
+            showA();
+        }
+        """;
+
+        var expected = new List<string>
+        {
+            "global", "global"
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
+    public static void Variable_GlobalCanBeRedeclared()
+    {
+        var input = """
+        var a = 0;
+        var a = 1;
+
+        print a;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+    #endregion
+
     #region Helper Methods
     private static LoxRuntimeError? ProcessInput(string input)
     {

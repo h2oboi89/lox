@@ -75,7 +75,9 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
 
     public object? VisitVariableExpression(VariableExpression expression)
     {
-        if (scope.IsDeclared(expression.Name.Lexeme) && !scope.IsDefined(expression.Name.Lexeme))
+        if (
+            scope.IsDeclared(expression.Name.Lexeme) && 
+            !scope.IsDefined(expression.Name.Lexeme))
         {
             errors.Add(new ScopeError(expression.Name, "Can't read local variable in its own initializer."));
         }

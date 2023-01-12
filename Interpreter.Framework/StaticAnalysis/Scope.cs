@@ -70,29 +70,17 @@ internal class Scope
 
         public bool Declare(string name)
         {
-            if (values.ContainsKey(name))
-            {
-                return false;
-            }
+            if (IsDeclared(name)) return false;
 
             values.Add(name, false);
 
             return true;
         }
 
-        public void Define(string name)
-        {
-            values[name] = true;
-        }
+        public void Define(string name) => values[name] = true;
 
-        public bool IsDeclared(string name)
-        {
-            return values.ContainsKey(name);
-        }
+        public bool IsDeclared(string name) => values.ContainsKey(name);
 
-        public bool IsDefined(string name)
-        {
-            return IsDeclared(name) && values[name] == true;
-        }
+        public bool IsDefined(string name) => IsDeclared(name) && values[name] == true;
     }
 }

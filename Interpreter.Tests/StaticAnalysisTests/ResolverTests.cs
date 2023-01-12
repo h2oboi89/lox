@@ -19,7 +19,23 @@ internal static class ResolverTests
     }
 
     [Test]
-    public static void Variable_CannotBeDeclaredTwice()
+    public static void Variable_ShadowingIsNotAllowed()
+    {
+        var input = """
+        var a = "outer";
+
+        {
+            var a = a;
+        }
+        """;
+
+        var expected = "Can't read local variable in its own initializer.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void Variable_CannotBeDeclaredTwiceOutsideGlobalScope()
     {
         var input = "{ var a; var a; }";
 
