@@ -2,6 +2,7 @@
 using Interpreter.Framework.Evaluating;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
+using Interpreter.Framework.StaticAnalysis;
 using static Interpreter.Framework.InterpreterErrorEventArgs;
 
 namespace Interpreter.Framework;
@@ -33,7 +34,7 @@ public static class Interpreter
         {
             foreach (var error in scanErrors)
             {
-                Report(ErrorType.ScanError, line: error.Line, where: string.Empty, message: error.Message);
+                Report(ErrorType.ScanError, error.Line, string.Empty, error.Message);
             }
             return;
         }
@@ -50,17 +51,24 @@ public static class Interpreter
         {
             foreach (var error in parseErrors)
             {
-                var token = error.Token;
-                var line = token.Line;
-                var where = token.Type == TokenType.EOF ? " at end" : $" at '{token.Lexeme}'";
-
-                Report(ErrorType.ParseError, line: line, where: where, message: error.Message);
+                GenerateError(error.Token, error.Message);
             }
             return;
         }
 
         RaiseDebug($"AST:)");
         RaiseDebug(printer.Print(statements));
+
+        var resolveErrors = Resolver.Resolve(interpreter, statements);
+
+        if (resolveErrors.Any())
+        {
+            foreach (var error in resolveErrors)
+            {
+                GenerateError(error.Token, error.Message);
+            }
+            return;
+        }
 
         var runtimeError = interpreter.Interpret(statements);
 
@@ -73,6 +81,14 @@ public static class Interpreter
         }
 
         return;
+    }
+
+    private static void GenerateError(Token token, string message)
+    {
+        var line = token.Line;
+        var where = token.Type == TokenType.EOF ? " at end" : $" at '{token.Lexeme}'";
+
+        Report(ErrorType.ParseError, line, where, message);
     }
 
     private static void Report(ErrorType error, int line, string where, string message) =>

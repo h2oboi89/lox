@@ -5,7 +5,8 @@ using Interpreter.Framework.Scanning;
 namespace Interpreter.Framework.Evaluating;
 public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<object?>
 {
-    internal readonly Environment Globals = new();
+    private readonly Environment globals = new();
+    private readonly Dictionary<Expression, int> locals = new();
     private Environment environment;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -17,11 +18,11 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     public void Reset()
     {
-        Globals.Clear();
-        environment = Globals;
+        globals.Clear();
+        environment = globals;
 
-        Globals.Define("clock", new Clock());
-        Globals.Define("reset", new Reset());
+        globals.Define("clock", new Clock());
+        globals.Define("reset", new Reset());
     }
 
     public LoxRuntimeError? Interpret(IEnumerable<Statement> statements)
@@ -49,7 +50,14 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     {
         var value = Evaluate(expression.Value);
 
-        environment.Assign(expression.Name, value);
+        if (locals.TryGetValue(expression, out var distance))
+        {
+            environment.AssignAt(distance, expression.Name, value);
+        }
+        else
+        {
+            globals.Assign(expression.Name, value);
+        }
 
         return value;
     }
@@ -147,7 +155,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         };
     }
 
-    public object? VisitVariableExpression(VariableExpression expression) => environment.Get(expression.Name);
+    public object? VisitVariableExpression(VariableExpression expression) => LookUpVariable(expression.Name, expression);
     #endregion
 
     #region Statements
@@ -270,6 +278,20 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         if (left is double lDbl && right is double rDbl) return (lDbl, rDbl);
 
         throw new LoxRuntimeError(operation, "Operands must be numbers.");
+    }
+
+    internal void Resolve(Expression expression, int depth) => locals[expression] = depth;
+
+    private object? LookUpVariable(Token name, Expression expression)
+    {
+        if (locals.TryGetValue(expression, out var distance))
+        {
+            return environment.GetAt(distance, name);
+        }
+        else
+        {
+            return globals.Get(name);
+        }
     }
     #endregion
 }

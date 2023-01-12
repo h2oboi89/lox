@@ -24,8 +24,8 @@ internal class Program
                 var exitCode = e.Error switch
                 {
                     ErrorType.ScanError or ErrorType.ParseError => 65,
-                    ErrorType.RuntimeError => 70,
-                    _ => 0,
+                    ErrorType.RuntimeError or ErrorType.ScopeError => 70,
+                    _ => 1,
                 };
 
                 Environment.Exit(exitCode);

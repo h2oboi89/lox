@@ -6,6 +6,7 @@ public class InterpreterErrorEventArgs : InterpreterOutEventArgs
         None,
         ScanError,
         ParseError,
+        ScopeError,
         RuntimeError,
     }
 

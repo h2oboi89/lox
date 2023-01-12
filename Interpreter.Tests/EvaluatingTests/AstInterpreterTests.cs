@@ -2,6 +2,7 @@
 using Interpreter.Framework.Evaluating;
 using Interpreter.Framework.Parsing;
 using Interpreter.Framework.Scanning;
+using Interpreter.Framework.StaticAnalysis;
 
 namespace Interpreter.Tests.EvaluatingTests;
 internal static class AstInterpreterTests
@@ -755,6 +756,117 @@ internal static class AstInterpreterTests
     }
     #endregion
 
+    #region Resolving
+    [Test]
+    public static void Variable_Preceding()
+    {
+        var input = """
+        var a = "outer";
+
+        {
+            print a;
+            var a = "inner";
+        }
+        """;
+
+        var expected = "outer";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Variable_Innermost()
+    {
+        var input = """
+        var a = "outer";
+
+        {
+            var a = "inner";
+            print a;
+        }
+        """;
+
+        var expected = "inner";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Variable_InnerShadowOfGlobal()
+    {
+        var input = """
+        var a = "global";
+
+        {
+            fun showA() {
+                print a;
+            }
+
+            showA();
+            var a = "block";
+            showA();
+        }
+        """;
+
+        var expected = new List<string>
+        {
+            "global", "global"
+        };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
+    public static void Variable_GlobalCanBeRedeclared()
+    {
+        var input = """
+        var a = 0;
+        var a = 1;
+
+        print a;
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Variable_NestedScopes()
+    {
+        var input = """
+        var a = 0;
+
+        print a;
+
+        {
+            print a;
+
+            var a = 1;
+
+            print a;
+
+            {
+                print a;
+
+                var a = 2;
+
+                print a;
+            }
+
+            print a;
+        }
+
+        print a;
+        """;
+
+        var expected = new List<string> { "0", "0", "1", "1", "2", "1", "0" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    #endregion
+
     #region Helper Methods
     private static LoxRuntimeError? ProcessInput(string input)
     {
@@ -765,6 +877,10 @@ internal static class AstInterpreterTests
         var (statements, parseErrors) = Parser.Parse(tokens);
 
         Assert.That(parseErrors, Is.Empty);
+
+        var scopeErrors = Resolver.Resolve(interpreter, statements);
+
+        Assert.That(scopeErrors, Is.Empty);
 
         return interpreter.Interpret(statements);
     }
