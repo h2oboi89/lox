@@ -46,23 +46,7 @@ internal class Scope
 
     public bool IsDefined(string name) => scope?.IsDefined(name) ?? false;
 
-    public void ResolveLocal(Expression expression, string name)
-    {
-        var distance = 0;
-        var scope = this.scope;
-
-        while (scope != null)
-        {
-            if (scope.IsDeclared(name))
-            {
-                interpreter.Resolve(expression, distance);
-                return;
-            }
-
-            scope = scope.Previous;
-            distance++;
-        }
-    }
+    public void ResolveLocal(Expression expression, string name) => scope?.ResolveLocal(interpreter, expression, name, -1);
 
     class ScopeLevel
     {
@@ -86,5 +70,15 @@ internal class Scope
         public bool IsDeclared(string name) => values.ContainsKey(name);
 
         public bool IsDefined(string name) => IsDeclared(name) && values[name] == true;
+
+        public void ResolveLocal(AstInterpreter interpreter, Expression expression, string name, int distance)
+        {
+            if (IsDeclared(name))
+            {
+                interpreter.Resolve(expression, distance);
+            }
+
+            Previous?.ResolveLocal(interpreter, expression, name, distance + 1);
+        }
     }
 }

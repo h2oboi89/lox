@@ -830,6 +830,41 @@ internal static class AstInterpreterTests
 
         AssertInputGeneratesProperOutput(input, expected);
     }
+
+    [Test]
+    public static void Variable_NestedScopes()
+    {
+        var input = """
+        var a = 0;
+
+        print a;
+
+        {
+            print a;
+
+            var a = 1;
+
+            print a;
+
+            {
+                print a;
+
+                var a = 2;
+
+                print a;
+            }
+
+            print a;
+        }
+
+        print a;
+        """;
+
+        var expected = new List<string> { "0", "0", "1", "1", "2", "1", "0" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
     #endregion
 
     #region Helper Methods
