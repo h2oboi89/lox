@@ -49,13 +49,18 @@ internal class Environment
 
     private Environment Ancestor(int distance)
     {
+        // Resolver ensure we don't run into null reference issues
         var environment = this;
 
         for (var i = 0; i < distance; i++)
         {
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
             environment = environment.enclosing;
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         }
 
+#pragma warning disable CS8603 // Possible null reference return.
         return environment;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 }
