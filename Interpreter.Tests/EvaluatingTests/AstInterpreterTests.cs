@@ -446,6 +446,16 @@ internal static class AstInterpreterTests
         AssertInputGeneratesProperOutput(input, expected);
     }
 
+    [Test]
+    public static void Variable_UnitializedIsNil()
+    {
+        var input = "var a; print a;";
+
+        var expected = "nil";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
 
     [Test]
     public static void Block()
