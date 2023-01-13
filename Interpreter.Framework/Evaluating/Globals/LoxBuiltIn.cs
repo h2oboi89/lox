@@ -8,7 +8,7 @@ internal class Clock : LoxBuiltIn
 {
     public override object? Call(AstInterpreter interpreter, IEnumerable<object?> arguments)
     {
-        return (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+        return DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
     }
 }
 

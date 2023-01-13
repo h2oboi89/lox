@@ -37,11 +37,25 @@ NOTE: some sections do not contain a tag link as they only represent a partial s
 - Superclass format is like C# (`class : superclass`) instead of using `<`
 
 ### TODO
-- enforce class name is upper case
-- warn user if field overrides method name
-- make print a built-in function
+- block comments
+- ternary expressions
+- comma separated expression (var a = 1, var b = 2;)
+- detect divide by zero
+- REPL autoprints expressions
 - add continue and break
-- read user input built-ins
+- anonymous functions
+- report unused variables
+- static methods for classes
+- public, private, protected fields and methods
+- getters and setters
 - multiple inheritance
 - interfaces
+- read user input built-ins
+- namespaces and imports?
+
+- enforce class name is upper case
+- virtual, abstract, override
+- warn user if field overrides method name
+- make print a built-in function
 - global scope not special (no more multiple declarations)
+- allow single line functions (no braces)

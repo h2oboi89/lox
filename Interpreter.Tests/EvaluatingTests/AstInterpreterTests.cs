@@ -924,7 +924,7 @@ internal static class AstInterpreterTests
         ProcessInput(input);
 
         Assert.That(output, Has.Count.EqualTo(1));
-        var parsed = int.TryParse(output[0], out var time);
+        var parsed = double.TryParse(output[0], out var time);
 
         Assert.That(parsed, Is.True);
         Assert.That(time, Is.GreaterThan(0));
