@@ -1,6 +1,7 @@
 ﻿using Interpreter.Framework.AST;
 using Interpreter.Framework.Evaluating.Globals;
 using Interpreter.Framework.Scanning;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Interpreter.Framework.Evaluating;
 public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<object?>
@@ -9,13 +10,12 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     private readonly Dictionary<Expression, int> locals = new();
     private Environment environment;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public AstInterpreter()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     {
         Reset();
     }
 
+    [MemberNotNull(nameof(environment))]
     public void Reset()
     {
         globals.Clear();
@@ -122,6 +122,17 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         }
     }
 
+    public object? VisitGetExpression(GetExpression expression)
+    {
+        var loxObject = Evaluate(expression.LoxObject);
+        if (loxObject is LoxInstance loxInstance)
+        {
+            return loxInstance.Get(expression.Name);
+        }
+
+        throw new LoxRuntimeError(expression.Name, "Only instances have properties.");
+    }
+
     public object? VisitGroupingExpression(GroupingExpression expression) => Evaluate(expression.Expression);
 
     public object? VisitLiteralExpression(LiteralExpression expression) => expression.Value;
@@ -142,6 +153,23 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
         return Evaluate(expression.Right);
     }
+
+    public object? VisitSetExpression(SetExpression expression)
+    {
+        var loxObject = Evaluate(expression.LoxObject);
+
+        if (loxObject is LoxInstance loxInstance)
+        {
+            var value = Evaluate(expression.Value);
+            loxInstance.Set(expression.Name, value);
+            return value;
+        }
+
+        throw new LoxRuntimeError(expression.Name, "Only instances have fields.");
+    }
+
+    public object? VisitThisExpression(ThisExpression expression) =>
+        LookUpVariable(expression.Keyword, expression);
 
     public object? VisitUnaryExpression(UnaryExpression expression)
     {
@@ -165,6 +193,22 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
+    public object? VisitClassStatement(ClassStatement statement)
+    {
+        environment.Define(statement.Name.Lexeme, null);
+
+        var methods = new Dictionary<string, LoxFunction>();
+        foreach (var method in statement.Methods)
+        {
+            var function = new LoxFunction(method, environment, LoxClass.IsInitializer(method.Name.Lexeme));
+            methods[method.Name.Lexeme] = function;
+        }
+
+        var loxClass = new LoxClass(statement.Name.Lexeme, methods);
+        environment.Assign(statement.Name, loxClass);
+        return null;
+    }
+
     public object? VisitExpressionStatement(ExpressionStatement statement)
     {
         Evaluate(statement.Expression);
@@ -174,7 +218,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     public object? VisitFunctionStatement(FunctionStatement statement)
     {
-        var function = new LoxFunction(statement, environment);
+        var function = new LoxFunction(statement, environment, false);
 
         environment.Define(statement.Name.Lexeme, function);
 
@@ -204,12 +248,20 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         return null;
     }
 
-    public object? VisitReturnStatement(ReturnStatement statement) =>
-        throw new Return(Evaluate(statement.Value));
+    public object? VisitReturnStatement(ReturnStatement statement)
+    {
+        object? value = null;
+
+        if (statement.Value != null) value = Evaluate(statement.Value);
+
+        throw new Return(value);
+    }
 
     public object? VisitVariableStatement(VariableStatement statement)
     {
-        var value = Evaluate(statement.Initializer);
+        object? value = null;
+
+        if (statement.Initializer != null) value = Evaluate(statement.Initializer);
 
         environment.Define(statement.Name.Lexeme, value);
 
@@ -286,7 +338,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
     {
         if (locals.TryGetValue(expression, out var distance))
         {
-            return environment.GetAt(distance, name);
+            return environment.GetAt(distance, name.Lexeme);
         }
         else
         {

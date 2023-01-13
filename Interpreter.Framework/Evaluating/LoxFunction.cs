@@ -5,11 +5,20 @@ internal class LoxFunction : LoxCallable
 {
     private readonly FunctionStatement declaration;
     private readonly Environment closure;
+    private readonly bool IsInitializer;
 
-    public LoxFunction(FunctionStatement declaration, Environment closure)
+    public LoxFunction(FunctionStatement declaration, Environment closure, bool isInitializer)
     {
         this.declaration = declaration;
         this.closure = closure;
+        IsInitializer = isInitializer;
+    }
+
+    public LoxFunction Bind(LoxInstance loxInstance)
+    {
+        var environment = new Environment(closure);
+        environment.Define(LoxInstance.THIS, loxInstance);
+        return new LoxFunction(declaration, environment, IsInitializer);
     }
 
     public override int Arity => declaration.Parameters.Count;
@@ -30,8 +39,12 @@ internal class LoxFunction : LoxCallable
         }
         catch (Return returnValue)
         {
+            if (IsInitializer) return closure.GetAt(0, LoxInstance.THIS);
+
             return returnValue.Value;
         }
+
+        if (IsInitializer) return closure.GetAt(0, LoxInstance.THIS);
 
         return null;
     }

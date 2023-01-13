@@ -425,7 +425,7 @@ internal static class ParserTests
         expectedOutput.AppendLine("            ( foo )");
         expectedOutput.AppendLine("        )");
         expectedOutput.AppendLine("        ( arguments");
-        for(var i = 0; i < argCount; i++)
+        for (var i = 0; i < argCount; i++)
         {
             expectedOutput.AppendLine("            ( 1 )");
         }
@@ -559,6 +559,96 @@ internal static class ParserTests
         Assert.That(errors[0], Is.EqualTo(expectedError));
 
         Assert.That(printer.Print(statements), Is.EqualTo(expectedStatements));
+    }
+
+    [Test]
+    public static void Class_MissingClassName()
+    {
+        var input = "class;";
+
+        var expected = "Expect class name.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void Class_MissingLeftBrace()
+    {
+        var input = "class foo;";
+
+        var expected = "Expect '{' before class body.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void Class_MissingRightBrace()
+    {
+        var input = "class foo { bar() { }";
+
+        var expected = "Expect '}' after class body.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void Class_Minimal()
+    {
+        var input = "class foo { }";
+
+        var expected = """
+        ( class foo
+            ( methods )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void Class_WithMethods()
+    {
+        var input = """
+        class foo {
+            init() { 
+                this.baz = 1; 
+            }
+
+            bar() { 
+                print this.baz;
+            }
+        }
+        """;
+
+        var expected = """
+        ( class foo
+            ( methods
+                ( function init
+                    ( parameters )
+                    ( body
+                        ( expression
+                            ( set baz
+                                ( this )
+                                ( 1 )
+                            )
+                        )
+                    )
+                )
+                ( function bar
+                    ( parameters )
+                    ( body
+                        ( print
+                            ( get baz
+                                ( this )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
     }
 
     [Test]
@@ -720,7 +810,8 @@ internal static class ParserTests
         var argCount = 256;
         var parameters = new string[argCount];
 
-        for (var i = 0; i < argCount; i++) {
+        for (var i = 0; i < argCount; i++)
+        {
             parameters[i] = $"a{i}";
         }
 
@@ -801,6 +892,23 @@ internal static class ParserTests
                         ( c )
                     )
                 )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void FunctionStatement_WithEmptyReturn()
+    {
+        var input = "fun foo() { return; }";
+
+        var expected = """
+        ( function foo
+            ( parameters )
+            ( body
+                ( return )
             )
         )
         """;
@@ -1051,11 +1159,7 @@ internal static class ParserTests
     {
         var input = "var a;";
 
-        var expected = """
-        ( var a =
-            ( nil )
-        )
-        """;
+        var expected = "( var a )";
 
         AssertInputGeneratesProperTree(input, expected);
     }
