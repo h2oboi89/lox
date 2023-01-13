@@ -28,7 +28,7 @@ NOTE: some sections do not contain a tag link as they only represent a partial s
 - [x] [Functions](http://craftinginterpreters.com/functions.html) : [Functions](https://github.com/h2oboi89/lox/releases/tag/Functions)
 - [x] [Resolving and Binding](http://craftinginterpreters.com/resolving-and-binding.html) : [ResolveAndBinding](https://github.com/h2oboi89/lox/releases/tag/ResolveAndBinding)
 - [x] [Classes](http://craftinginterpreters.com/classes.html) : [Classes](https://github.com/h2oboi89/lox/releases/tag/Classes)
-- [ ] [Inheritance](http://craftinginterpreters.com/inheritance.html)
+- [x] [Inheritance](http://craftinginterpreters.com/inheritance.html) : [Inheritance](https://github.com/h2oboi89/lox/releases/tag/Inheritance)
 
 ### Bytecode Virtual Machine
 
