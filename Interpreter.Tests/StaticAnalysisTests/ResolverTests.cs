@@ -74,6 +74,16 @@ internal static class ResolverTests
         AssertInputGeneratesError(input, expected);
     }
 
+    [Test]
+    public static void Class_CannotInheritFromItself()
+    {
+        var input = "class Foo : Foo { }";
+
+        var expected = "A class can't inherit from itself.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
     #region Helper Methods
     private static void AssertInputGeneratesError(string input, string expected)
     {

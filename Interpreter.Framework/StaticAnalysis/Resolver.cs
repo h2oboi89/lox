@@ -123,6 +123,16 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
     {
         Initialize(statement.Name);
 
+        if (statement.SuperClass!= null)
+        {
+            if (statement.Name.Lexeme == statement.SuperClass.Name.Lexeme)
+            {
+                errors.Add(new ScopeError(statement.SuperClass.Name, "A class can't inherit from itself."));
+            }
+
+            Resolve(statement.SuperClass);
+        }
+
         scope.EnterClass();
 
         foreach (var method in statement.Methods)

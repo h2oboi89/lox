@@ -58,6 +58,13 @@ internal class TokenParser
     {
         var name = Consume(TokenType.IDENTIFIER, "Expect class name.");
 
+        VariableExpression? superClass = null;
+        if (Match(TokenType.COLON))
+        {
+            Consume(TokenType.IDENTIFIER, "Expect super class name.");
+            superClass = new VariableExpression(Previous());
+        }
+
         ConsumeCharacterBefore(TokenType.LEFT_BRACE, '{', "class body");
 
         var methods = new List<FunctionStatement>();
@@ -69,7 +76,7 @@ internal class TokenParser
 
         ConsumeCharacterAfter(TokenType.RIGHT_BRACE, '}', "class body");
 
-        return new ClassStatement(name, methods);
+        return new ClassStatement(name, superClass, methods);
     }
 
     private FunctionStatement FunctionStatement(string kind)

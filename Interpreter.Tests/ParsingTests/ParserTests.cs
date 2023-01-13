@@ -594,10 +594,11 @@ internal static class ParserTests
     [Test]
     public static void Class_Minimal()
     {
-        var input = "class foo { }";
+        var input = "class Foo { }";
 
         var expected = """
-        ( class foo
+        ( class Foo
+            ( super )
             ( methods )
         )
         """;
@@ -609,7 +610,7 @@ internal static class ParserTests
     public static void Class_WithMethods()
     {
         var input = """
-        class foo {
+        class Foo {
             init() { 
                 this.baz = 1; 
             }
@@ -621,7 +622,8 @@ internal static class ParserTests
         """;
 
         var expected = """
-        ( class foo
+        ( class Foo
+            ( super )
             ( methods
                 ( function init
                     ( parameters )
@@ -645,6 +647,29 @@ internal static class ParserTests
                     )
                 )
             )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void Class_SuperClass()
+    {
+        var input = """
+        class SuperFoo { }
+
+        class Foo : SuperFoo { }
+        """;
+
+        var expected = """
+        ( class SuperFoo
+            ( super )
+            ( methods )
+        )
+        ( class Foo
+            ( super SuperFoo )
+            ( methods )
         )
         """;
 

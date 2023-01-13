@@ -550,6 +550,72 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Class_SuperClassMustBeClass()
+    {
+        var input = """
+        var Foo = 1;
+
+        class Bar : Foo { }
+        """;
+
+        var expected = "Super class must be a class.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
+    public static void Class_CanInheritFromSuper()
+    {
+        var input = """
+        class Foo {
+            init() {
+                this.bar = 1;
+            }
+        }
+
+        class Baz : Foo {
+            qux() {
+                print this.bar;
+            }
+        }
+
+        Baz().qux();
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Class_CanOverrideInheritFromSuper()
+    {
+        var input = """
+        class Foo {
+            init() {
+                this.bar = 1;
+            }
+        }
+
+        class Baz : Foo {
+            init () {
+                this.bar = 2;
+            }
+
+            qux() {
+                print this.bar;
+            }
+        }
+
+        Baz().qux();
+        """;
+
+        var expected = "2";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
     public static void Get_OnlyOnInstance()
     {
         var input = "1.ToString();";

@@ -18,6 +18,7 @@ internal static class ScannerTests
             ( ".",  "1 DOT ." ),
             ( "-",  "1 MINUS -" ),
             ( "+",  "1 PLUS +" ),
+            ( ":",  "1 COLON :" ),
             ( ";",  "1 SEMICOLON ;" ),
             ( "*",  "1 STAR *" ),
             ( "!",  "1 BANG !" ),
@@ -163,7 +164,6 @@ internal static class ScannerTests
             ( "[", "Unexpected character: '['." ),
             ( "]", "Unexpected character: ']'." ),
             ( "|", "Unexpected character: '|'." ),
-            ( ":", "Unexpected character: ':'." ),
             ( "'", "Unexpected character: '''." ),
             ( "?", "Unexpected character: '?'." ),
         };

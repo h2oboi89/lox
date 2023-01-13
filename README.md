@@ -34,3 +34,10 @@ NOTE: some sections do not contain a tag link as they only represent a partial s
 
 ## Deviations / Enchancements
 - Reworked interpreter to facilitate testing (see [Interpreter.Tests](https://github.com/h2oboi89/lox/tree/main/Interpreter.Tests))
+- Superclass format is like C# (`class : superclass`) instead of using `<`
+
+### TODO
+- enforce class name is upper case
+- warn user if field overrides method name
+- make print a built-in function
+- add continue and break

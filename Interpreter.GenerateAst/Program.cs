@@ -35,7 +35,7 @@ internal class Program
             new string[]
             {
                 "Block      : List<Statement> Statements",
-                "Class      : Token Name, List<FunctionStatement> Methods",
+                "Class      : Token Name, VariableExpression? SuperClass, List<FunctionStatement> Methods",
                 "Expression : Expression Expression",
                 "Function   : Token Name, List<Token> Parameters, List<Statement> Body",
                 "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",

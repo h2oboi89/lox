@@ -195,6 +195,19 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
     public object? VisitClassStatement(ClassStatement statement)
     {
+        LoxClass? superLoxClass = null;
+        if (statement.SuperClass != null)
+        {
+            var superClass = Evaluate(statement.SuperClass);
+
+            if (superClass is not LoxClass)
+            {
+                throw new LoxRuntimeError(statement.SuperClass.Name, "Super class must be a class.");
+            }
+
+            superLoxClass = (LoxClass)superClass;
+        }
+
         environment.Define(statement.Name.Lexeme, null);
 
         var methods = new Dictionary<string, LoxFunction>();
@@ -204,7 +217,7 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
             methods[method.Name.Lexeme] = function;
         }
 
-        var loxClass = new LoxClass(statement.Name.Lexeme, methods);
+        var loxClass = new LoxClass(statement.Name.Lexeme, superLoxClass, methods);
         environment.Assign(statement.Name, loxClass);
         return null;
     }
