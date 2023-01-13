@@ -41,3 +41,7 @@ NOTE: some sections do not contain a tag link as they only represent a partial s
 - warn user if field overrides method name
 - make print a built-in function
 - add continue and break
+- read user input built-ins
+- multiple inheritance
+- interfaces
+- global scope not special (no more multiple declarations)

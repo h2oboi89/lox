@@ -7,6 +7,7 @@ internal class LoxClass : LoxCallable
     private readonly LoxClass? superClass;
     private readonly Dictionary<string, LoxFunction> methods;
     private const string INIT = "init";
+    public const string SUPER = "super";
 
     public LoxClass(string name, LoxClass? superClass, Dictionary<string, LoxFunction> methods)
     {

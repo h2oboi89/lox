@@ -456,6 +456,16 @@ internal class TokenParser
 
         if (Match(TokenType.NUMBER, TokenType.STRING)) return new LiteralExpression(Previous().Literal);
 
+        if (Match(TokenType.SUPER)) {
+            var keyword = Previous();
+
+            ConsumeCharacterAfter(TokenType.DOT, '.', "'super'");
+
+            var method = Consume(TokenType.IDENTIFIER, "Expect super class method name.");
+
+            return new SuperExpression(keyword, method);
+        }
+
         if (Match(TokenType.THIS)) return new ThisExpression(Previous());
 
         if (Match(TokenType.IDENTIFIER)) return new VariableExpression(Previous());

@@ -24,6 +24,7 @@ internal class Program
                 "Literal    : object? Value",
                 "Logical    : Expression Left, Token Operator, Expression Right",
                 "Set        : Expression LoxObject, Token Name, Expression Value",
+                "Super      : Token Keyword, Token Method",
                 "This       : Token Keyword",
                 "Unary      : Token Operator, Expression Right",
                 "Variable   : Token Name",

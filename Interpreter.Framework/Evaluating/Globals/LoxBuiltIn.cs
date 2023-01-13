@@ -1,5 +1,5 @@
 ﻿namespace Interpreter.Framework.Evaluating.Globals;
-internal class LoxBuiltIn : LoxCallable
+internal abstract class LoxBuiltIn : LoxCallable
 {
     public override string ToString() => "<function native>";
 }

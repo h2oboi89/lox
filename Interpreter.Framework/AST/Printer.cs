@@ -50,6 +50,9 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
     public string VisitSetExpression(SetExpression expression) =>
         Parenthesize($"set {expression.Name.Lexeme}", expression.LoxObject, expression.Value);
+    
+    public string VisitSuperExpression(SuperExpression expression) =>
+        Parenthesize($"{expression.Keyword.Lexeme} {expression.Method.Lexeme}");
 
     public string VisitThisExpression(ThisExpression expression) =>
         Parenthesize(expression.Keyword.Lexeme);

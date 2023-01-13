@@ -616,6 +616,44 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Class_CanCallSuperMethod()
+    {
+        var input = """
+        class Foo {
+            baz() { print 1; }
+        }
+
+        class Bar : Foo {
+            baz() { super.baz(); print 2; }
+        }
+
+        Bar().baz();
+        """;
+
+        var expected = new string[] { "1", "2" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
+    public static void Class_UndefinedSuperMethod()
+    {
+        var input = """
+        class Foo { }
+
+        class Bar : Foo {
+            baz() { super.baz(); }
+        }
+
+        Bar().baz();
+        """;
+
+        var expected = "Undefined property 'baz'.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
     public static void Get_OnlyOnInstance()
     {
         var input = "1.ToString();";

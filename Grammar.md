@@ -71,11 +71,13 @@ call            → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 
 arguments       → expression ( "," expression )* ;
 
-primary         → NUMBER 
-                | STRING 
-                | "true" 
+primary         → "true" 
                 | "false" 
                 | "nil" 
-                | "(" expression ")" 
-                | IDENTIFIER ;
+                | "this"
+                | NUMBER 
+                | STRING 
+                | IDENTIFIER
+                | "(" expression ")"
+                | "super" "." IDENTIFIER ;
 ```

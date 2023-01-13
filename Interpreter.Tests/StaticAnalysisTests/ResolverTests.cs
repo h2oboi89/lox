@@ -84,6 +84,26 @@ internal static class ResolverTests
         AssertInputGeneratesError(input, expected);
     }
 
+    [Test]
+    public static void Super_OutsideofClass()
+    {
+        var input = "print super.foo();";
+
+        var expected = "Can't use 'super' outside of a class.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
+    [Test]
+    public static void Super_ClassWithNoSuperClass()
+    {
+        var input = "class Foo { bar() { super.bar(); } }";
+
+        var expected = "Can't use 'super' in a class with no super class.";
+
+        AssertInputGeneratesError(input, expected);
+    }
+
     #region Helper Methods
     private static void AssertInputGeneratesError(string input, string expected)
     {

@@ -677,6 +677,110 @@ internal static class ParserTests
     }
 
     [Test]
+    public static void Class_InvalidCallToSuperMethod_MissingDot()
+    {
+        var input = """
+        class Foo : SuperFoo { 
+            foo() {
+                super();
+            }
+        }
+        """;
+
+        var expectedOutput = """
+        ( class Foo
+            ( super SuperFoo )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body )
+                )
+            )
+        )
+        """;
+
+        var expectedError = "Expect '.' after 'super'.";
+
+        AssertInputGeneratesExpected(input, expectedOutput, expectedError);
+    }
+
+    [Test]
+    public static void Class_InvalidCallToSuperMethod_MissingMethodName()
+    {
+        var input = """
+        class Foo : SuperFoo { 
+            foo() {
+                super.();
+            }
+        }
+        """;
+
+        var expectedOutput = """
+        ( class Foo
+            ( super SuperFoo )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body )
+                )
+            )
+        )
+        """;
+
+        var expectedError = "Expect super class method name.";
+
+        AssertInputGeneratesExpected(input, expectedOutput, expectedError);
+    }
+
+    [Test]
+    public static void Class_CallToSuperMethod()
+    {
+        var input = """
+        class SuperFoo { 
+            foo() { }
+        }
+
+        class Foo : SuperFoo { 
+            foo() {
+                super.foo();
+            }
+        }
+        """;
+
+        var expected = """
+        ( class SuperFoo
+            ( super )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body )
+                )
+            )
+        )
+        ( class Foo
+            ( super SuperFoo )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body
+                        ( expression
+                            ( call
+                                ( callee
+                                    ( super foo )
+                                )
+                                ( arguments )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
     public static void For_MissingLeftParen()
     {
         var input = "for 1;";

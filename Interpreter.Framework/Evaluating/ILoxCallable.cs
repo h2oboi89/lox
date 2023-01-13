@@ -11,6 +11,5 @@ abstract class LoxCallable : ILoxCallable
 {
     public virtual int Arity => 0;
 
-    public virtual object? Call(AstInterpreter interpreter, IEnumerable<object?> arguments) =>
-        throw new NotImplementedException();
+    public abstract object? Call(AstInterpreter interpreter, IEnumerable<object?> arguments);
 }

@@ -168,6 +168,29 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
         throw new LoxRuntimeError(expression.Name, "Only instances have fields.");
     }
 
+    public object? VisitSuperExpression(SuperExpression expression)
+    {
+        // NOTE: the resolver prevents null references
+        var distance = locals[expression];
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+        var superLoxClass = (LoxClass)environment.GetAt(distance, LoxClass.SUPER);
+        var loxInstance = (LoxInstance)environment.GetAt(distance - 1, LoxInstance.THIS);
+#pragma warning restore CS8600
+
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
+        superLoxClass.TryGetMethod(expression.Method.Lexeme, out var method);
+#pragma warning restore CS8602
+
+        if (method == null)
+        {
+            throw new LoxRuntimeError(expression.Method, $"Undefined property '{expression.Method.Lexeme}'.");
+        }
+
+#pragma warning disable CS8604 // Possible null reference argument.
+        return method.Bind(loxInstance);
+#pragma warning restore CS8604
+    }
+
     public object? VisitThisExpression(ThisExpression expression) =>
         LookUpVariable(expression.Keyword, expression);
 
@@ -210,6 +233,12 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
         environment.Define(statement.Name.Lexeme, null);
 
+        if (superLoxClass != null)
+        {
+            environment = new Environment(environment);
+            environment.Define(LoxClass.SUPER, superLoxClass);
+        }
+
         var methods = new Dictionary<string, LoxFunction>();
         foreach (var method in statement.Methods)
         {
@@ -219,6 +248,13 @@ public class AstInterpreter : Expression.IVisitor<object?>, Statement.IVisitor<o
 
         var loxClass = new LoxClass(statement.Name.Lexeme, superLoxClass, methods);
         environment.Assign(statement.Name, loxClass);
+
+        if (superLoxClass != null)
+        {
+#pragma warning disable CS8601 // Possible null reference assignment.
+            environment = environment.Enclosing;
+#pragma warning restore CS8601
+        }
         return null;
     }
 
