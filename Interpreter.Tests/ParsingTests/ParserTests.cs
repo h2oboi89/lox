@@ -594,10 +594,11 @@ internal static class ParserTests
     [Test]
     public static void Class_Minimal()
     {
-        var input = "class foo { }";
+        var input = "class Foo { }";
 
         var expected = """
-        ( class foo
+        ( class Foo
+            ( super )
             ( methods )
         )
         """;
@@ -609,7 +610,7 @@ internal static class ParserTests
     public static void Class_WithMethods()
     {
         var input = """
-        class foo {
+        class Foo {
             init() { 
                 this.baz = 1; 
             }
@@ -621,7 +622,8 @@ internal static class ParserTests
         """;
 
         var expected = """
-        ( class foo
+        ( class Foo
+            ( super )
             ( methods
                 ( function init
                     ( parameters )
@@ -640,6 +642,133 @@ internal static class ParserTests
                         ( print
                             ( get baz
                                 ( this )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void Class_SuperClass()
+    {
+        var input = """
+        class SuperFoo { }
+
+        class Foo : SuperFoo { }
+        """;
+
+        var expected = """
+        ( class SuperFoo
+            ( super )
+            ( methods )
+        )
+        ( class Foo
+            ( super SuperFoo )
+            ( methods )
+        )
+        """;
+
+        AssertInputGeneratesProperTree(input, expected);
+    }
+
+    [Test]
+    public static void Class_InvalidCallToSuperMethod_MissingDot()
+    {
+        var input = """
+        class Foo : SuperFoo { 
+            foo() {
+                super();
+            }
+        }
+        """;
+
+        var expectedOutput = """
+        ( class Foo
+            ( super SuperFoo )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body )
+                )
+            )
+        )
+        """;
+
+        var expectedError = "Expect '.' after 'super'.";
+
+        AssertInputGeneratesExpected(input, expectedOutput, expectedError);
+    }
+
+    [Test]
+    public static void Class_InvalidCallToSuperMethod_MissingMethodName()
+    {
+        var input = """
+        class Foo : SuperFoo { 
+            foo() {
+                super.();
+            }
+        }
+        """;
+
+        var expectedOutput = """
+        ( class Foo
+            ( super SuperFoo )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body )
+                )
+            )
+        )
+        """;
+
+        var expectedError = "Expect super class method name.";
+
+        AssertInputGeneratesExpected(input, expectedOutput, expectedError);
+    }
+
+    [Test]
+    public static void Class_CallToSuperMethod()
+    {
+        var input = """
+        class SuperFoo { 
+            foo() { }
+        }
+
+        class Foo : SuperFoo { 
+            foo() {
+                super.foo();
+            }
+        }
+        """;
+
+        var expected = """
+        ( class SuperFoo
+            ( super )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body )
+                )
+            )
+        )
+        ( class Foo
+            ( super SuperFoo )
+            ( methods
+                ( function foo
+                    ( parameters )
+                    ( body
+                        ( expression
+                            ( call
+                                ( callee
+                                    ( super foo )
+                                )
+                                ( arguments )
                             )
                         )
                     )

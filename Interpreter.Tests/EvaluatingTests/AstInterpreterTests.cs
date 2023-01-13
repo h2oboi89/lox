@@ -550,6 +550,110 @@ internal static class AstInterpreterTests
     }
 
     [Test]
+    public static void Class_SuperClassMustBeClass()
+    {
+        var input = """
+        var Foo = 1;
+
+        class Bar : Foo { }
+        """;
+
+        var expected = "Super class must be a class.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
+    public static void Class_CanInheritFromSuper()
+    {
+        var input = """
+        class Foo {
+            init() {
+                this.bar = 1;
+            }
+        }
+
+        class Baz : Foo {
+            qux() {
+                print this.bar;
+            }
+        }
+
+        Baz().qux();
+        """;
+
+        var expected = "1";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Class_CanOverrideInheritFromSuper()
+    {
+        var input = """
+        class Foo {
+            init() {
+                this.bar = 1;
+            }
+        }
+
+        class Baz : Foo {
+            init () {
+                this.bar = 2;
+            }
+
+            qux() {
+                print this.bar;
+            }
+        }
+
+        Baz().qux();
+        """;
+
+        var expected = "2";
+
+        AssertInputGeneratesProperOutput(input, expected);
+    }
+
+    [Test]
+    public static void Class_CanCallSuperMethod()
+    {
+        var input = """
+        class Foo {
+            baz() { print 1; }
+        }
+
+        class Bar : Foo {
+            baz() { super.baz(); print 2; }
+        }
+
+        Bar().baz();
+        """;
+
+        var expected = new string[] { "1", "2" };
+
+        AssertInputGeneratesProperOutputs(input, expected);
+    }
+
+    [Test]
+    public static void Class_UndefinedSuperMethod()
+    {
+        var input = """
+        class Foo { }
+
+        class Bar : Foo {
+            baz() { super.baz(); }
+        }
+
+        Bar().baz();
+        """;
+
+        var expected = "Undefined property 'baz'.";
+
+        AssertInputGeneratesProperError(input, expected);
+    }
+
+    [Test]
     public static void Get_OnlyOnInstance()
     {
         var input = "1.ToString();";
@@ -820,7 +924,7 @@ internal static class AstInterpreterTests
         ProcessInput(input);
 
         Assert.That(output, Has.Count.EqualTo(1));
-        var parsed = int.TryParse(output[0], out var time);
+        var parsed = double.TryParse(output[0], out var time);
 
         Assert.That(parsed, Is.True);
         Assert.That(time, Is.GreaterThan(0));

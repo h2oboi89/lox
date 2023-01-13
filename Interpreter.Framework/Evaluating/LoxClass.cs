@@ -4,19 +4,29 @@ namespace Interpreter.Framework.Evaluating;
 internal class LoxClass : LoxCallable
 {
     public string Name { get; init; }
+    private readonly LoxClass? superClass;
     private readonly Dictionary<string, LoxFunction> methods;
     private const string INIT = "init";
+    public const string SUPER = "super";
 
-    public LoxClass(string name, Dictionary<string, LoxFunction> methods)
+    public LoxClass(string name, LoxClass? superClass, Dictionary<string, LoxFunction> methods)
     {
         Name = name;
+        this.superClass = superClass;
         this.methods = methods;
     }
 
     public static bool IsInitializer(string name) => name == INIT;
 
-    public bool TryGetMethod(string name, [MaybeNullWhen(false)] out LoxFunction function) =>
-        methods.TryGetValue(name, out function);
+    public bool TryGetMethod(string name, [MaybeNullWhen(false)] out LoxFunction function)
+    {
+        if (methods.TryGetValue(name, out function)) return true;
+
+        if (superClass != null) return superClass.TryGetMethod(name, out function);
+
+        function = null;
+        return false;
+    }
 
     public override object? Call(AstInterpreter interpreter, IEnumerable<object?> arguments)
     {

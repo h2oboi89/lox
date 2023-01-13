@@ -24,7 +24,7 @@ public record class BlockStatement(List<Statement> Statements) : Statement
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitBlockStatement(this);
 }
 
-public record class ClassStatement(Token Name, List<FunctionStatement> Methods) : Statement
+public record class ClassStatement(Token Name, VariableExpression? SuperClass, List<FunctionStatement> Methods) : Statement
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitClassStatement(this);
 }

@@ -80,6 +80,21 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
         return null;
     }
 
+    public object? VisitSuperExpression(SuperExpression expression)
+    {
+        if (!scope.InClass)
+        {
+            errors.Add(new ScopeError(expression.Keyword, "Can't use 'super' outside of a class."));
+        }
+        else if (!scope.InSubClass)
+        {
+            errors.Add(new ScopeError(expression.Keyword, "Can't use 'super' in a class with no super class."));
+        }
+
+        ResolveLocal(expression, expression.Keyword);
+        return null;
+    }
+
     public object? VisitThisExpression(ThisExpression expression)
     {
         if (!scope.InClass)
@@ -123,7 +138,22 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
     {
         Initialize(statement.Name);
 
-        scope.EnterClass();
+        var classType = Scope.ClassType.Class;
+
+        if (statement.SuperClass!= null)
+        {
+            if (statement.Name.Lexeme == statement.SuperClass.Name.Lexeme)
+            {
+                errors.Add(new ScopeError(statement.SuperClass.Name, "A class can't inherit from itself."));
+            }
+
+            Resolve(statement.SuperClass);
+
+            scope.EnterSuperClass();
+            classType = Scope.ClassType.SubClass;
+        }
+
+        scope.EnterClass(classType);
 
         foreach (var method in statement.Methods)
         {
@@ -135,6 +165,8 @@ public class Resolver : Expression.IVisitor<object?>, Statement.IVisitor<object?
         }
 
         scope.ExitClass();
+
+        if (statement.SuperClass != null) scope.ExitClass();
 
         return null;
     }

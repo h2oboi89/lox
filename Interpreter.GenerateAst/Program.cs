@@ -24,6 +24,7 @@ internal class Program
                 "Literal    : object? Value",
                 "Logical    : Expression Left, Token Operator, Expression Right",
                 "Set        : Expression LoxObject, Token Name, Expression Value",
+                "Super      : Token Keyword, Token Method",
                 "This       : Token Keyword",
                 "Unary      : Token Operator, Expression Right",
                 "Variable   : Token Name",
@@ -35,7 +36,7 @@ internal class Program
             new string[]
             {
                 "Block      : List<Statement> Statements",
-                "Class      : Token Name, List<FunctionStatement> Methods",
+                "Class      : Token Name, VariableExpression? SuperClass, List<FunctionStatement> Methods",
                 "Expression : Expression Expression",
                 "Function   : Token Name, List<Token> Parameters, List<Statement> Body",
                 "If         : Expression Condition, Statement ThenBranch, Statement? ElseBranch",

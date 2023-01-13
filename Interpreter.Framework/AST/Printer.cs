@@ -3,17 +3,8 @@
 namespace Interpreter.Framework.AST;
 public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 {
-    public string Print(IEnumerable<Statement> statements)
-    {
-        var sb = new StringBuilder();
-
-        foreach (var statement in statements)
-        {
-            sb.Append(statement.Accept(this));
-        }
-
-        return sb.ToString();
-    }
+    public string Print(IEnumerable<Statement> statements) =>
+        string.Join(Environment.NewLine, statements.Select(s => s.Accept(this)));
 
     #region Expressions
     public string VisitAssignmentExpression(AssignmentExpression expression) =>
@@ -59,6 +50,9 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
     public string VisitSetExpression(SetExpression expression) =>
         Parenthesize($"set {expression.Name.Lexeme}", expression.LoxObject, expression.Value);
+    
+    public string VisitSuperExpression(SuperExpression expression) =>
+        Parenthesize($"{expression.Keyword.Lexeme} {expression.Method.Lexeme}");
 
     public string VisitThisExpression(ThisExpression expression) =>
         Parenthesize(expression.Keyword.Lexeme);
@@ -80,6 +74,15 @@ public class Printer : Expression.IVisitor<string>, Statement.IVisitor<string>
 
         sb.AppendLine($"{Indent()}( class {statement.Name.Lexeme}");
         indentLevel++;
+
+        if (statement.SuperClass == null)
+        {
+            sb.AppendLine(Parenthesize("super"));
+        }
+        else
+        {
+            sb.AppendLine(Parenthesize($"super {statement.SuperClass.Name.Lexeme}"));
+        }
 
         if (!statement.Methods.Any())
         {

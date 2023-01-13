@@ -12,7 +12,7 @@ declaration     → classDecl
                 | varDecl
                 | statement ;
 
-classDecl       → "class" IDENTIFIER "{" function* "}" ;
+classDecl       → "class" IDENTIFIER ( ":" IDENTIFIER )? "{" function* "}" ;
 
 funDecl         → "fun" function ;
 
@@ -71,11 +71,13 @@ call            → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 
 arguments       → expression ( "," expression )* ;
 
-primary         → NUMBER 
-                | STRING 
-                | "true" 
+primary         → "true" 
                 | "false" 
                 | "nil" 
-                | "(" expression ")" 
-                | IDENTIFIER ;
+                | "this"
+                | NUMBER 
+                | STRING 
+                | IDENTIFIER
+                | "(" expression ")"
+                | "super" "." IDENTIFIER ;
 ```

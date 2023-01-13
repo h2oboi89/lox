@@ -1,13 +1,14 @@
 ﻿using Interpreter.Framework.Scanning;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Interpreter.Framework.Evaluating;
 internal class Environment
 {
-    private readonly Environment? enclosing = null;
+    public readonly Environment? Enclosing = null;
 
     private readonly Dictionary<string, object?> values = new();
 
-    public Environment(Environment? enclosing = null) { this.enclosing = enclosing; }
+    public Environment(Environment? enclosing = null) { Enclosing = enclosing; }
 
     public void Clear() => values.Clear();
 
@@ -17,7 +18,7 @@ internal class Environment
     {
         if (values.TryGetValue(name.Lexeme, out object? value)) return value;
 
-        if (enclosing != null) return enclosing.Get(name);
+        if (Enclosing != null) return Enclosing.Get(name);
 
         throw UndefinedVariableError(name);
     }
@@ -33,9 +34,9 @@ internal class Environment
             return;
         }
 
-        if (enclosing != null)
+        if (Enclosing != null)
         {
-            enclosing.Assign(name, value);
+            Enclosing.Assign(name, value);
             return;
         }
 
@@ -56,7 +57,7 @@ internal class Environment
         for (var i = 0; i < distance; i++)
         {
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
-            environment = environment.enclosing;
+            environment = environment.Enclosing;
 #pragma warning restore CS8602
         }
 

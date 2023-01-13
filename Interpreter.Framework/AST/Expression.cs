@@ -13,6 +13,7 @@ public abstract record class Expression
         T VisitLiteralExpression(LiteralExpression expression);
         T VisitLogicalExpression(LogicalExpression expression);
         T VisitSetExpression(SetExpression expression);
+        T VisitSuperExpression(SuperExpression expression);
         T VisitThisExpression(ThisExpression expression);
         T VisitUnaryExpression(UnaryExpression expression);
         T VisitVariableExpression(VariableExpression expression);
@@ -59,6 +60,11 @@ public record class LogicalExpression(Expression Left, Token Operator, Expressio
 public record class SetExpression(Expression LoxObject, Token Name, Expression Value) : Expression
 {
     public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitSetExpression(this);
+}
+
+public record class SuperExpression(Token Keyword, Token Method) : Expression
+{
+    public override T Accept<T>(IVisitor<T> visitor) => visitor.VisitSuperExpression(this);
 }
 
 public record class ThisExpression(Token Keyword) : Expression

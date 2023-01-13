@@ -21,6 +21,7 @@ internal class Scope
     {
         None,
         Class,
+        SubClass,
     }
 
     public Scope(AstInterpreter interpreter)
@@ -46,9 +47,15 @@ internal class Scope
         currentFunction.Pop();
     }
 
-    public void EnterClass()
+    public void EnterSuperClass()
     {
-        currentClass.Push(ClassType.Class);
+        EnterBlock();
+        Initialize(LoxClass.SUPER);
+    }
+
+    public void EnterClass(ClassType classType)
+    {
+        currentClass.Push(classType);
         EnterBlock();
         Initialize(LoxInstance.THIS);
     }
@@ -75,6 +82,8 @@ internal class Scope
     public bool InInitializer => currentFunction.Peek() == FunctionType.Initializer;
 
     public bool InClass => currentClass.Peek() != ClassType.None;
+
+    public bool InSubClass => currentClass.Peek() == ClassType.SubClass;
 
     public bool IsDeclared(string name) => scope?.IsDeclared(name) ?? false;
 
