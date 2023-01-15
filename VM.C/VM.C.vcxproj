@@ -132,11 +132,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chunkc.c" />
+    <ClCompile Include="chunk.c" />
     <ClCompile Include="debug.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="value.c" />
+    <ClCompile Include="vm.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.h" />
@@ -144,6 +145,7 @@
     <ClInclude Include="debug.h" />
     <ClInclude Include="memory.h" />
     <ClInclude Include="value.h" />
+    <ClInclude Include="vm.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

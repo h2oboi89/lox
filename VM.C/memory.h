@@ -14,4 +14,4 @@
 
 void* reallocate(void* pointer, size_t oldSize, size_t newSize);
 
-#endif
+#endif // !clox_memory_h
