@@ -140,6 +140,7 @@
     <ClCompile Include="debug.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="object.c" />
     <ClCompile Include="scanner.c" />
     <ClCompile Include="value.c" />
     <ClCompile Include="vm.c" />
@@ -150,6 +151,7 @@
     <ClInclude Include="compiler.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="object.h" />
     <ClInclude Include="scanner.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="vm.h" />
