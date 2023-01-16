@@ -71,7 +71,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>lox.vm.c</TargetName>
+    <TargetName>VM.C</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <TargetName>VM.C</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -133,17 +136,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="chunk.c" />
+    <ClCompile Include="compiler.c" />
     <ClCompile Include="debug.c" />
     <ClCompile Include="memory.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="scanner.c" />
     <ClCompile Include="value.c" />
     <ClCompile Include="vm.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chunk.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="compiler.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="memory.h" />
+    <ClInclude Include="scanner.h" />
     <ClInclude Include="value.h" />
     <ClInclude Include="vm.h" />
   </ItemGroup>
