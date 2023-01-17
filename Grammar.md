@@ -5,7 +5,7 @@
 program        → declaration* EOF ;
 ```
 
-## Statements
+## Declaration
 ```
 declaration     → classDecl
                 | funDecl
@@ -16,12 +16,15 @@ classDecl       → "class" IDENTIFIER ( ":" IDENTIFIER )? "{" function* "}" ;
 
 funDecl         → "fun" function ;
 
-function        → IDENTIFIER "(" paramters? ")" block ;
+function        → IDENTIFIER "(" parameters? ")" block ;
 
 parameters      → IDENTIFIER ( "," IDENTIFIER )* ;
 
-varDecl         → "var" IDENTIFIER ( "=" expression )? ";" ;               
+varDecl         → "var" IDENTIFIER ( "=" expression )? ";" ;
+```
 
+## Statements
+```
 statement       → exprStmt
                 | ifStmt
                 | forStmt
@@ -32,9 +35,9 @@ statement       → exprStmt
 
 exprStmt        → expression ";" ;
 
-ifStmt          → "if" "(" expression ")" statement ( "else" statement )? ;
+forStmt         → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
 
-forStmt         → "for" "(" ( varDecl | exprStmt | ";" expression? ";" expression? ")" statement ;
+ifStmt          → "if" "(" expression ")" statement ( "else" statement )? ;
 
 printStmt       → "print" expression ";" ;
 
@@ -80,4 +83,15 @@ primary         → "true"
                 | IDENTIFIER
                 | "(" expression ")"
                 | "super" "." IDENTIFIER ;
+```
+
+## Lexical Grammar
+```
+NUMBER          → DIGIT+ ( "." DIGIT+ )? ;
+STRING          → "\"" <any char except "\"">* "\"" ;
+IDENTIFIER      → ALPHA ( ALPHA | DIGIT )* ;
+ALPHA           → "a" ... "z"
+                | "A" ... "Z"
+                | "_" ;
+DIGIT           → "0" ... "9" ;
 ```
