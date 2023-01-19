@@ -131,7 +131,7 @@ static void emitU16(uint16_t value) {
     emitByte(value & 0xff);
 }
 
-static int emitLoop(int loopStart) {
+static void emitLoop(int loopStart) {
     emitByte(OP_LOOP);
 
     int offset = currentChunk()->count - loopStart + 2;
