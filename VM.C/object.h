@@ -8,14 +8,17 @@
 #define OBJECT_TYPE(value)  (AS_OBJECT(value)->type)
 
 #define IS_FUNCTION(value)  isObjectType(value, OBJECT_FUNCTION)
+#define IS_NATIVE(value)    isObjectType(value, OBJECT_NATIVE)
 #define IS_STRING(value)    isObjectType(value, OBJECT_STRING)
 
 #define AS_FUNCTION(value)  ((ObjectFunction*)AS_OBJECT(value))
+#define AS_NATIVE(value)    (((ObjectNative*)AS_OBJECT(value))->function)
 #define AS_STRING(value)    ((ObjectString*)AS_OBJECT(value))
 #define AS_CSTRING(value)   (AS_STRING(value))->chars
 
 typedef enum {
     OBJECT_FUNCTION,
+    OBJECT_NATIVE,
     OBJECT_STRING,
 } ObjectType;
 
@@ -31,6 +34,13 @@ typedef struct {
     ObjectString* name;
 } ObjectFunction;
 
+typedef Value(*NativeFn)(int argCount, Value* args);
+
+typedef struct {
+    Object object;
+    NativeFn function;
+} ObjectNative;
+
 struct ObjectString {
     Object object;
     int length;
@@ -43,6 +53,7 @@ static inline bool isObjectType(Value value, ObjectType type) {
 }
 
 ObjectFunction* newFunction();
+ObjectNative* newNative(NativeFn function);
 ObjectString* takeString(char* chars, int length);
 ObjectString* copyString(const char* chars, int length);
 void printObject(Value value);
