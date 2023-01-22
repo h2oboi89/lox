@@ -121,6 +121,11 @@ static bool callValue(Value callee, int argCount) {
     return false;
 }
 
+static ObjectUpValue* captureUpValue(Value* local) {
+    ObjectUpValue* createdUpValue = newUpValue(local);
+    return createdUpValue;
+}
+
 static bool isFalsey(Value value) {
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
@@ -160,6 +165,10 @@ static InterpretResult run() {
         double a = AS_NUMBER(pop()); \
         push(valueType(a op b)); \
     } while (false)
+
+#ifdef DEBUG_TRACE_EXECUTION
+    printf("\nEXECUTION START\n");
+#endif
 
     for (;;) {
 #ifdef DEBUG_TRACE_EXECUTION
@@ -225,6 +234,16 @@ static InterpretResult run() {
                 runtimeError("Undefined variable '%s'.", name->chars);
                 return INTERPRET_RUNTIME_ERROR;
             }
+            break;
+        }
+        case OP_GET_UPVALUE: {
+            uint8_t slot = READ_BYTE();
+            push(*frame->closure->upValues[slot]->location);
+            break;
+        }
+        case OP_SET_UPVALUE: {
+            uint8_t slot = READ_BYTE();
+            *frame->closure->upValues[slot]->location = peek(0);
             break;
         }
 
@@ -301,6 +320,17 @@ static InterpretResult run() {
             ObjectFunction* function = AS_FUNCTION(READ_CONSTANT());
             ObjectClosure* closure = newClosure(function);
             push(OBJECT_VAL(closure));
+            for (int i = 0; i < closure->upValueCount; i++) {
+                uint8_t isLocal = READ_BYTE();
+                uint8_t index = READ_BYTE();
+
+                if (isLocal) {
+                    closure->upValues[i] = captureUpValue(frame->slots + index);
+                }
+                else {
+                    closure->upValues[i] = frame->closure->upValues[index];
+                }
+            }
             break;
         }
 

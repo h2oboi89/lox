@@ -23,6 +23,7 @@ typedef enum ObjectType {
     OBJECT_FUNCTION,
     OBJECT_NATIVE,
     OBJECT_STRING,
+    OBJECT_UPVALUE,
 } ObjectType;
 
 struct Object {
@@ -52,9 +53,16 @@ struct ObjectString {
     uint32_t hash;
 };
 
+typedef struct ObjectUpValue {
+    Object object;
+    Value* location;
+} ObjectUpValue;
+
 typedef struct ObjectClosure {
     Object object;
     ObjectFunction* function;
+    ObjectUpValue** upValues;
+    int upValueCount;
 } ObjectClosure;
 
 static inline bool isObjectType(Value value, ObjectType type) {
@@ -66,6 +74,7 @@ ObjectFunction* newFunction();
 ObjectNative* newNative(NativeFn function);
 ObjectString* takeString(char* chars, int length);
 ObjectString* copyString(const char* chars, int length);
+ObjectUpValue* newUpValue(Value* slot);
 void printObject(Value value);
 
 #endif // !clox_object_h

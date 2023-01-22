@@ -18,10 +18,11 @@ static void freeObject(Object* object) {
 	switch (object->type)
 	{
 	case OBJECT_CLOSURE: {
+		ObjectClosure* closure = (ObjectClosure*)object;
+		FREE_ARRAY(ObjectUpValue*, closure->upValues, closure->upValueCount);
 		FREE(OBJECT_CLOSURE, object);
 		break;
 	}
-
 	case OBJECT_FUNCTION: {
 		ObjectFunction* function = (ObjectFunction*)object;
 		freeChunk(&function->chunk);
@@ -36,6 +37,10 @@ static void freeObject(Object* object) {
 		ObjectString* string = (ObjectString*)object;
 		FREE_ARRAY(char, string->chars, string->length + 1);
 		FREE(ObjectString, object);
+		break;
+	}
+	case OBJECT_UPVALUE: {
+		FREE(OBJECT_UPVALUE, object);
 		break;
 	}
 	}
