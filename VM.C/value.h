@@ -6,16 +6,16 @@
 typedef struct Object Object;
 typedef struct ObjectString ObjectString;
 
-typedef enum {
+typedef enum ValueType {
     VAL_BOOL,
     VAL_NIL,
     VAL_NUMBER,
     VAL_OBJECT,
 } ValueType;
 
-typedef struct {
+typedef struct Value{
     ValueType type;
-    union {
+    union as {
         bool boolean;
         double number;
         Object* object;
@@ -36,7 +36,7 @@ typedef struct {
 #define NUMBER_VAL(value)	((Value){VAL_NUMBER, {.number = value}})
 #define OBJECT_VAL(value)	((Value){VAL_OBJECT, {.object = (Object*)value}})
 
-typedef struct {
+typedef struct ValueArray {
     int capacity;
     int count;
     Value* values;

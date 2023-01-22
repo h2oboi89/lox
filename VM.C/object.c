@@ -28,6 +28,7 @@ ObjectClosure* newClosure(ObjectFunction* function) {
 ObjectFunction* newFunction() {
     ObjectFunction* function = ALLOCATE_OBJECT(ObjectFunction, OBJECT_FUNCTION);
     function->arity = 0;
+    function->upValueCount = 0;
     function->name = NULL;
     initChunk(&function->chunk);
     return function;

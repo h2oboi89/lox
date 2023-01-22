@@ -18,7 +18,7 @@
 #define AS_STRING(value)    ((ObjectString*)AS_OBJECT(value))
 #define AS_CSTRING(value)   (AS_STRING(value))->chars
 
-typedef enum {
+typedef enum ObjectType {
     OBJECT_CLOSURE,
     OBJECT_FUNCTION,
     OBJECT_NATIVE,
@@ -30,16 +30,17 @@ struct Object {
     struct Object* next;
 };
 
-typedef struct {
+typedef struct ObjectFunction {
     Object object;
     int arity;
+    int upValueCount;
     Chunk chunk;
     ObjectString* name;
 } ObjectFunction;
 
 typedef Value(*NativeFn)(int argCount, Value* args);
 
-typedef struct {
+typedef struct ObjectNative {
     Object object;
     NativeFn function;
 } ObjectNative;
@@ -51,7 +52,7 @@ struct ObjectString {
     uint32_t hash;
 };
 
-typedef struct {
+typedef struct ObjectClosure {
     Object object;
     ObjectFunction* function;
 } ObjectClosure;

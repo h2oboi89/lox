@@ -9,13 +9,13 @@
 #define FRAMES_MAX 64
 #define STACK_MAX (FRAMES_MAX * UINT8_COUNT)
 
-typedef struct {
+typedef struct CallFrame {
 	ObjectClosure* closure;
 	uint8_t* ip;
 	Value* slots;
 } CallFrame;
 
-typedef struct {
+typedef struct VM {
 	CallFrame frames[FRAMES_MAX];
 	int frameCount;
 
@@ -26,7 +26,7 @@ typedef struct {
 	Object* objects;
 } VM;
 
-typedef enum {
+typedef enum InterpretResult {
 	INTERPRET_OK,
 	INTERPRET_COMPILE_ERROR,
 	INTERPRET_RUNTIME_ERROR,

@@ -13,14 +13,14 @@
 #define UNINITIALIZED   -1
 #define MAX_ARGS        255
 
-typedef struct {
+typedef struct Parse{
     Token current;
     Token previous;
     bool hadError;
     bool panicMode;
 } Parser;
 
-typedef enum {
+typedef enum Precedence {
     PREC_NONE,
     PREC_ASSIGNMENT,	// =
     PREC_OR,			// or
@@ -36,18 +36,23 @@ typedef enum {
 
 typedef void (*ParseFn)(bool canAssign);
 
-typedef struct {
+typedef struct ParseRule{
     ParseFn prefix;
     ParseFn infix;
     Precedence precedence;
 } ParseRule;
 
-typedef struct {
+typedef struct Local {
     Token name;
     int depth;
 } Local;
 
-typedef enum {
+typedef struct UpValue {
+    uint8_t index;
+    bool isLocal;
+} UpValue;
+
+typedef enum FunctionType {
     TYPE_FUNCTION,
     TYPE_SCRIPT,
 } FunctionType;
@@ -59,6 +64,7 @@ typedef struct Compiler {
 
     Local locals[UINT8_COUNT];
     int localCount;
+    UpValue upValues[UINT8_COUNT];
     int scopeDepth;
 } Compiler;
 
@@ -260,6 +266,42 @@ static int resolveLocal(Compiler* compiler, Token* name) {
     return -1;
 }
 
+static int addUpValue(Compiler* compiler, uint8_t index, bool isLocal) {
+    int upValueCount = compiler->function->upValueCount;
+
+    for (int i = 0; i < upValueCount; i++) {
+        UpValue* upValue = &compiler->upValues[i];
+        if (upValue->index == index && upValue->isLocal == isLocal) {
+            return i;
+        }
+    }
+
+    if (upValueCount == UINT8_COUNT) {
+        error("Too many closure variables in function.");
+        return 0;
+    }
+
+    compiler->upValues[upValueCount].isLocal = isLocal;
+    compiler->upValues[upValueCount].index = index;
+    return compiler->function->upValueCount++;
+}
+
+static int resolveUpValue(Compiler* compiler, Token* name) {
+    if (compiler->enclosing == NULL) return -1;
+
+    int local = resolveLocal(compiler->enclosing, name);
+    if (local != -1) {
+        return addUpValue(compiler, (uint8_t)local, true);
+    }
+
+    int upValue = resolveUpValue(compiler->enclosing, name);
+    if (upValue != -1) {
+        return addUpValue(compiler, (uint8_t)upValue, false);
+    }
+
+    return -1;
+}
+
 static void addLocal(Token name) {
     if (current->localCount == UINT8_COUNT) {
         error("Too many local variables in function.");
@@ -403,6 +445,10 @@ static void namedVariable(Token name, bool canAssign) {
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
     }
+    else if ((arg = resolveUpValue(current, &name)) != -1) {
+        getOp = OP_GET_UPVALUE;
+        setOp = OP_SET_UPVALUE;
+    }
     else {
         arg = identifierConstant(&name);
         getOp = OP_GET_GLOBAL;
@@ -538,6 +584,11 @@ static void function(FunctionType type) {
 
     ObjectFunction* function = endCompiler();
     emitBytes(OP_CLOSURE, makeConstant(OBJECT_VAL(function)));
+
+    for (int i = 0; i < function->upValueCount; i++) {
+        emitByte(compiler.upValues[i].isLocal ? 1 : 0);
+        emitByte(compiler.upValues[i].index);
+    }
 }
 
 static void funDeclaration() {

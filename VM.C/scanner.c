@@ -4,7 +4,7 @@
 #include "common.h"
 #include "scanner.h"
 
-typedef struct {
+typedef struct Scanner {
 	const char* start;
 	const char* current;
 	int line;
