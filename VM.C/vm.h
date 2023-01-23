@@ -23,6 +23,7 @@ typedef struct VM {
 	Value* stackTop;
 	Table globals;
 	Table strings;
+	ObjectUpValue* openUpValues;
 	Object* objects;
 } VM;
 

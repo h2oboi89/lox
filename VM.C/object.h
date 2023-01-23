@@ -56,6 +56,8 @@ struct ObjectString {
 typedef struct ObjectUpValue {
     Object object;
     Value* location;
+    Value closed;
+    struct ObjectUpValue* next;
 } ObjectUpValue;
 
 typedef struct ObjectClosure {

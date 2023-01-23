@@ -19,6 +19,7 @@ static Value clockNative(int argCount, Value* args) {
 static void resetStack() {
     vm.stackTop = vm.stack;
     vm.frameCount = 0;
+    vm.openUpValues = NULL;
 }
 
 static void runtimeError(const char* format, ...) {
@@ -122,8 +123,36 @@ static bool callValue(Value callee, int argCount) {
 }
 
 static ObjectUpValue* captureUpValue(Value* local) {
+    ObjectUpValue* previousUpValue = NULL;
+    ObjectUpValue* upValue = vm.openUpValues;
+    while (upValue != NULL && upValue->location > local) {
+        previousUpValue = upValue;
+        upValue = upValue->next;
+    }
+
+    if (upValue != NULL && upValue->location == local) {
+        return upValue;
+    }
+
     ObjectUpValue* createdUpValue = newUpValue(local);
+    createdUpValue->next = upValue;
+
+    if (previousUpValue == NULL) {
+        vm.openUpValues = createdUpValue;
+    }
+    else {
+        previousUpValue->next = createdUpValue;
+    }
     return createdUpValue;
+}
+
+static void closeUpValues(Value* last) {
+    while (vm.openUpValues != NULL && vm.openUpValues->location >= last) {
+        ObjectUpValue* upValue = vm.openUpValues;
+        upValue->closed = *upValue->location;
+        upValue->location = &upValue->closed;
+        vm.openUpValues = upValue->next;
+    }
 }
 
 static bool isFalsey(Value value) {
@@ -333,9 +362,15 @@ static InterpretResult run() {
             }
             break;
         }
+        case OP_CLOSE_UPVALUE: {
+            closeUpValues(vm.stackTop - 1);
+            pop();
+            break;
+        }
 
         case OP_RETURN: {
             Value result = pop();
+            closeUpValues(frame->slots);
             vm.frameCount--;
             if (vm.frameCount == 0) {
                 pop();

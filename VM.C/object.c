@@ -90,6 +90,8 @@ ObjectUpValue* newUpValue(Value* slot)
 {
     ObjectUpValue* upValue = ALLOCATE_OBJECT(ObjectUpValue, OBJECT_UPVALUE);
     upValue->location = slot;
+    upValue->next = NULL;
+    upValue->closed = NIL_VAL;
     return upValue;
 }
 
