@@ -5,5 +5,6 @@
 #include "vm.h"
 
 ObjectFunction* compile(const char* source);
+void markCompilerRoots();
 
 #endif // !clox_compiler_h
