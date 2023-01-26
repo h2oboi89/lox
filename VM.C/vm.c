@@ -166,8 +166,8 @@ static bool isFalsey(Value value) {
 }
 
 static void concatenate() {
-    ObjectString* b = AS_STRING(pop());
-    ObjectString* a = AS_STRING(pop());
+    ObjectString* b = AS_STRING(peek(0));
+    ObjectString* a = AS_STRING(peek(1));
 
     int length = a->length + b->length;
     char* chars = ALLOCATE(char, length + 1);
@@ -176,6 +176,8 @@ static void concatenate() {
     chars[length] = '\0';
 
     ObjectString* result = takeString(chars, length);
+    pop();
+    pop();
     push(OBJECT_VAL(result));
 }
 
