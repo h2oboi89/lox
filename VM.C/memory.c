@@ -8,6 +8,14 @@
 #include "debug.h"
 #endif
 
+static void* reallocWrapper(void* block, size_t size) {
+    void* pointer = realloc(block, size);
+
+    if (pointer == NULL) exit(1);
+
+    return pointer;
+}
+
 void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
     if (newSize > oldSize) {
 #ifdef DEBUG_STRESS_GC
@@ -20,9 +28,7 @@ void* reallocate(void* pointer, size_t oldSize, size_t newSize) {
         return NULL;
     }
 
-    void* result = realloc(pointer, newSize);
-    if (result == NULL) exit(1);
-    return result;
+    return reallocWrapper(pointer, newSize);
 }
 
 void markObject(Object* object) {
@@ -39,9 +45,7 @@ void markObject(Object* object) {
 
     if (vm.grayCapacity < vm.grayCount + 1) {
         vm.grayCapacity = GROW_CAPACITY(vm.grayCapacity);
-        vm.grayStack = (Object**)realloc(vm.grayStack, sizeof(Object*) * vm.grayCapacity);
-
-        if (vm.grayStack == NULL) exit(1);
+        vm.grayStack = (Object**)reallocWrapper(vm.grayStack, sizeof(Object*) * vm.grayCapacity);
     }
 
     vm.grayStack[vm.grayCount++] = object;
@@ -147,6 +151,32 @@ static void traceReferences() {
     }
 }
 
+static void sweep() {
+    Object* previous = NULL;
+    Object* object = vm.objects;
+
+    while (object != NULL) {
+        if (object->isMarked) {
+            object->isMarked = false;
+            previous = object;
+            object = object->next;
+        }
+        else {
+            Object* unreached = object;
+            object = object->next;
+
+            if (previous != NULL) {
+                previous->next = object;
+            }
+            else {
+                vm.objects = object;
+            }
+
+            freeObject(unreached);
+        }
+    }
+}
+
 void collectGarbage()
 {
 #ifdef DEBUG_LOG_GC
@@ -155,6 +185,8 @@ void collectGarbage()
 
     markRoots();
     traceReferences();
+    tableRemoveWhite(&vm.strings);
+    sweep();
 
 #ifdef DEBUG_LOG_GC
     printf("-- gc end --\n");
