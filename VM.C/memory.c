@@ -45,7 +45,7 @@ void markObject(Object* object) {
 
 #ifdef DEBUG_LOG_GC
     printf("%p mark ", (void*)object);
-    printValue(OBJECT_VAL(object));
+    printValue(OBJECT_VALUE(object));
     printf("\n");
 #endif
 
@@ -72,27 +72,41 @@ static void markArray(ValueArray* array) {
 static void blackenObject(Object* object) {
 #ifdef DEBUG_LOG_GC
     printf("%p blacken ", (void*)object);
-    printValue(OBJECT_VAL(object));
+    printValue(OBJECT_VALUE(object));
     printf("\n");
 #endif
 
     switch (object->type)
     {
-    case OBJECT_CLOSURE:
+    case OBJECT_CLASS: {
+        ObjectClass* loxClass = (ObjectClass*)object;
+        markObject((Object*)loxClass->name);
+        break;
+    }
+    case OBJECT_CLOSURE: {
         ObjectClosure* closure = (ObjectClosure*)object;
         markObject((Object*)closure->function);
         for (int i = 0; i < closure->upValueCount; i++) {
             markObject((Object*)closure->upValues[i]);
         }
         break;
-    case OBJECT_FUNCTION:
+    }
+    case OBJECT_FUNCTION: {
         ObjectFunction* function = (ObjectFunction*)object;
         markObject((Object*)function->name);
         markArray(&function->chunk.constants);
         break;
-    case OBJECT_UPVALUE:
+    }
+    case OBJECT_INSTANCE: {
+        ObjectInstance* instance = (ObjectInstance*)object;
+        markObject((Object*)instance->loxClass);
+        markTable(&instance->fields);
+        break;
+    }
+    case OBJECT_UPVALUE: {
         markValue(((ObjectUpValue*)object)->closed);
         break;
+    }
     case OBJECT_NATIVE:
     case OBJECT_STRING:
         break;
@@ -106,6 +120,10 @@ static void freeObject(Object* object) {
 
     switch (object->type)
     {
+    case OBJECT_CLASS: {
+        FREE(ObjectClass, object);
+        break;
+    }
     case OBJECT_CLOSURE: {
         ObjectClosure* closure = (ObjectClosure*)object;
         FREE_ARRAY(ObjectUpValue*, closure->upValues, closure->upValueCount);
@@ -116,6 +134,12 @@ static void freeObject(Object* object) {
         ObjectFunction* function = (ObjectFunction*)object;
         freeChunk(&function->chunk);
         FREE(OBJECT_FUNCTION, object);
+        break;
+    }
+    case OBJECT_INSTANCE: {
+        ObjectInstance* instance = (ObjectInstance*)object;
+        freeTable(&instance->fields);
+        FREE(ObjectInstance, object);
         break;
     }
     case OBJECT_NATIVE: {

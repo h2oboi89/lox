@@ -31,10 +31,10 @@ void freeValueArray(ValueArray* array) {
 void printValue(Value value) {
     switch (value.type)
     {
-    case VAL_BOOL: printf(AS_BOOL(value) ? "true" : "false"); break;
-    case VAL_NIL: printf("nil"); break;
-    case VAL_NUMBER: printf("%g", AS_NUMBER(value)); break;
-    case VAL_OBJECT: printObject(value); break;
+    case VALUE_BOOL:    printf(AS_BOOL(value) ? "true" : "false"); break;
+    case VALUE_NIL:     printf("nil"); break;
+    case VALUE_NUMBER:  printf("%g", AS_NUMBER(value)); break;
+    case VALUE_OBJECT:  printObject(value); break;
     default: break;
     }
 }
@@ -44,10 +44,10 @@ bool valuesEqual(Value a, Value b) {
 
     switch (a.type)
     {
-    case VAL_BOOL:      return AS_BOOL(a) == AS_BOOL(b);
-    case VAL_NIL:       return true;
-    case VAL_NUMBER:    return AS_NUMBER(a) == AS_NUMBER(b);
-    case VAL_OBJECT:    return AS_OBJECT(a) == AS_OBJECT(b);
+    case VALUE_BOOL:    return AS_BOOL(a) == AS_BOOL(b);
+    case VALUE_NIL:     return true;
+    case VALUE_NUMBER:  return AS_NUMBER(a) == AS_NUMBER(b);
+    case VALUE_OBJECT:  return AS_OBJECT(a) == AS_OBJECT(b);
     default:            return false;
     }
 }

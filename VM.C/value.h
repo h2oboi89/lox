@@ -7,10 +7,10 @@ typedef struct Object Object;
 typedef struct ObjectString ObjectString;
 
 typedef enum ValueType {
-    VAL_BOOL,
-    VAL_NIL,
-    VAL_NUMBER,
-    VAL_OBJECT,
+    VALUE_BOOL,
+    VALUE_NIL,
+    VALUE_NUMBER,
+    VALUE_OBJECT,
 } ValueType;
 
 typedef struct Value{
@@ -22,19 +22,19 @@ typedef struct Value{
     } as;
 } Value;
 
-#define IS_BOOL(value)		((value).type == VAL_BOOL)
-#define IS_NIL(value)		((value).type == VAL_NIL)
-#define IS_NUMBER(value)	((value).type == VAL_NUMBER)
-#define IS_OBJECT(value)	((value).type == VAL_OBJECT)
+#define IS_BOOL(value)		((value).type == VALUE_BOOL)
+#define IS_NIL(value)		((value).type == VALUE_NIL)
+#define IS_NUMBER(value)	((value).type == VALUE_NUMBER)
+#define IS_OBJECT(value)	((value).type == VALUE_OBJECT)
 
 #define AS_BOOL(value)		((value).as.boolean)
 #define AS_NUMBER(value)	((value).as.number)
 #define AS_OBJECT(value)	((value).as.object)
 
-#define BOOL_VAL(value)		((Value){VAL_BOOL, {.boolean = value}})
-#define NIL_VAL				((Value){VAL_NIL, {.number = 0}})
-#define NUMBER_VAL(value)	((Value){VAL_NUMBER, {.number = value}})
-#define OBJECT_VAL(value)	((Value){VAL_OBJECT, {.object = (Object*)value}})
+#define BOOL_VAL(value)		((Value){VALUE_BOOL, {.boolean = value}})
+#define NIL_VAL				((Value){VALUE_NIL, {.number = 0}})
+#define NUMBER_VAL(value)	((Value){VALUE_NUMBER, {.number = value}})
+#define OBJECT_VALUE(value)	((Value){VALUE_OBJECT, {.object = (Object*)value}})
 
 typedef struct ValueArray {
     int capacity;
