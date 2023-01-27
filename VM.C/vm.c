@@ -47,8 +47,8 @@ static void runtimeError(const char* format, ...) {
 }
 
 static void defineNative(const char* name, NativeFn function) {
-    push(OBJECT_VAL(copyString(name, (int)strlen(name))));
-    push(OBJECT_VAL(newNative(function)));
+    push(OBJECT_VALUE(copyString(name, (int)strlen(name))));
+    push(OBJECT_VALUE(newNative(function)));
     tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
     pop();
     pop();
@@ -178,7 +178,7 @@ static void concatenate() {
     ObjectString* result = takeString(chars, length);
     pop();
     pop();
-    push(OBJECT_VAL(result));
+    push(OBJECT_VALUE(result));
 }
 
 static InterpretResult run() {
@@ -356,7 +356,7 @@ static InterpretResult run() {
         case OP_CLOSURE: {
             ObjectFunction* function = AS_FUNCTION(READ_CONSTANT());
             ObjectClosure* closure = newClosure(function);
-            push(OBJECT_VAL(closure));
+            push(OBJECT_VALUE(closure));
             for (int i = 0; i < closure->upValueCount; i++) {
                 uint8_t isLocal = READ_BYTE();
                 uint8_t index = READ_BYTE();
@@ -390,6 +390,10 @@ static InterpretResult run() {
             frame = &vm.frames[vm.frameCount - 1];
             break;
         }
+        case OP_CLASS: {
+            push(OBJECT_VALUE(newClass(READ_STRING())));
+            break;
+        }
         }
     }
 
@@ -404,10 +408,10 @@ InterpretResult interpret(const char* source) {
     ObjectFunction* function = compile(source);
     if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
-    push(OBJECT_VAL(function));
+    push(OBJECT_VALUE(function));
     ObjectClosure* closure = newClosure(function);
     pop();
-    push(OBJECT_VAL(closure));
+    push(OBJECT_VALUE(closure));
     call(closure, 0);
 
     return run();

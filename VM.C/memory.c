@@ -45,7 +45,7 @@ void markObject(Object* object) {
 
 #ifdef DEBUG_LOG_GC
     printf("%p mark ", (void*)object);
-    printValue(OBJECT_VAL(object));
+    printValue(OBJECT_VALUE(object));
     printf("\n");
 #endif
 
@@ -72,15 +72,15 @@ static void markArray(ValueArray* array) {
 static void blackenObject(Object* object) {
 #ifdef DEBUG_LOG_GC
     printf("%p blacken ", (void*)object);
-    printValue(OBJECT_VAL(object));
+    printValue(OBJECT_VALUE(object));
     printf("\n");
 #endif
 
     switch (object->type)
     {
     case OBJECT_CLASS: {
-        ObjectClass* class = (ObjectClass*)object;
-        markObject((Object*)class->name);
+        ObjectClass* loxClass = (ObjectClass*)object;
+        markObject((Object*)loxClass->name);
         break;
     }
     case OBJECT_CLOSURE: {

@@ -26,9 +26,9 @@ static Object* allocateObject(size_t size, ObjectType type) {
 }
 
 ObjectClass* newClass(ObjectString* name) {
-    ObjectClass* class = ALLOCATE_OBJECT(ObjectClass, OBJECT_CLASS);
-    class->name = name;
-    return class;
+    ObjectClass* loxClass = ALLOCATE_OBJECT(ObjectClass, OBJECT_CLASS);
+    loxClass->name = name;
+    return loxClass;
 }
 
 ObjectClosure* newClosure(ObjectFunction* function) {
@@ -65,7 +65,7 @@ static ObjectString* allocateString(char* chars, int length, uint32_t hash) {
     string->chars = chars;
     string->hash = hash;
 
-    push(OBJECT_VAL(string));
+    push(OBJECT_VALUE(string));
     tableSet(&vm.strings, string, NIL_VAL);
     pop();
 
