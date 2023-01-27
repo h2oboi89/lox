@@ -78,21 +78,29 @@ static void blackenObject(Object* object) {
 
     switch (object->type)
     {
-    case OBJECT_CLOSURE:
+    case OBJECT_CLASS: {
+        ObjectClass* class = (ObjectClass*)object;
+        markObject((Object*)class->name);
+        break;
+    }
+    case OBJECT_CLOSURE: {
         ObjectClosure* closure = (ObjectClosure*)object;
         markObject((Object*)closure->function);
         for (int i = 0; i < closure->upValueCount; i++) {
             markObject((Object*)closure->upValues[i]);
         }
         break;
-    case OBJECT_FUNCTION:
+    }
+    case OBJECT_FUNCTION: {
         ObjectFunction* function = (ObjectFunction*)object;
         markObject((Object*)function->name);
         markArray(&function->chunk.constants);
         break;
-    case OBJECT_UPVALUE:
+    }
+    case OBJECT_UPVALUE: {
         markValue(((ObjectUpValue*)object)->closed);
         break;
+    }
     case OBJECT_NATIVE:
     case OBJECT_STRING:
         break;
@@ -106,6 +114,10 @@ static void freeObject(Object* object) {
 
     switch (object->type)
     {
+    case OBJECT_CLASS: {
+        FREE(ObjectClass, object);
+        break;
+    }
     case OBJECT_CLOSURE: {
         ObjectClosure* closure = (ObjectClosure*)object;
         FREE_ARRAY(ObjectUpValue*, closure->upValues, closure->upValueCount);
