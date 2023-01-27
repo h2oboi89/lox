@@ -97,6 +97,12 @@ static void blackenObject(Object* object) {
         markArray(&function->chunk.constants);
         break;
     }
+    case OBJECT_INSTANCE: {
+        ObjectInstance* instance = (ObjectInstance*)object;
+        markObject((Object*)instance->loxClass);
+        markTable(&instance->fields);
+        break;
+    }
     case OBJECT_UPVALUE: {
         markValue(((ObjectUpValue*)object)->closed);
         break;
@@ -128,6 +134,12 @@ static void freeObject(Object* object) {
         ObjectFunction* function = (ObjectFunction*)object;
         freeChunk(&function->chunk);
         FREE(OBJECT_FUNCTION, object);
+        break;
+    }
+    case OBJECT_INSTANCE: {
+        ObjectInstance* instance = (ObjectInstance*)object;
+        freeTable(&instance->fields);
+        FREE(ObjectInstance, object);
         break;
     }
     case OBJECT_NATIVE: {

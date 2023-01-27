@@ -113,6 +113,11 @@ static bool callValue(Value callee, int argCount) {
         {
         case OBJECT_CLOSURE:
             return call(AS_CLOSURE(callee), argCount);
+        case OBJECT_CLASS: {
+            ObjectClass* loxClass = AS_CLASS(callee);
+            vm.stackTop[-argCount - 1] = OBJECT_VALUE(newInstance(loxClass));
+            return true;
+        }
         case OBJECT_NATIVE: {
             NativeFn native = AS_NATIVE(callee);
             Value result = native(argCount, vm.stackTop - argCount);

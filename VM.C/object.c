@@ -53,6 +53,13 @@ ObjectFunction* newFunction() {
     return function;
 }
 
+ObjectInstance* newInstance(ObjectClass* loxClass) {
+    ObjectInstance* instance = ALLOCATE_OBJECT(ObjectInstance, OBJECT_INSTANCE);
+    instance->loxClass = loxClass;
+    initTable(&instance->fields);
+    return instance;
+}
+
 ObjectNative* newNative(NativeFn function) {
     ObjectNative* native = ALLOCATE_OBJECT(ObjectNative, OBJECT_NATIVE);
     native->function = function;
@@ -131,6 +138,9 @@ void printObject(Value value) {
         break;
     case OBJECT_FUNCTION:
         printFunction(AS_FUNCTION(value));
+        break;
+    case OBJECT_INSTANCE:
+        printf("%s instance", AS_INSTANCE(value)->loxClass->name->chars);
         break;
     case OBJECT_NATIVE:
         printf("<native fn>");
