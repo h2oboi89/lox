@@ -166,6 +166,13 @@ static void closeUpValues(Value* last) {
     }
 }
 
+static void defineMethod(ObjectString* name) {
+    Value method = peek(0);
+    ObjectClass* loxClass = AS_CLASS(peek(1));
+    tableSet(&loxClass->methods, name, method);
+    pop();
+}
+
 static bool isFalsey(Value value) {
     return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 }
@@ -431,6 +438,10 @@ static InterpretResult run() {
         }
         case OP_CLASS: {
             push(OBJECT_VALUE(newClass(READ_STRING())));
+            break;
+        }
+        case OP_METHOD: {
+            defineMethod(READ_STRING());
             break;
         }
         }

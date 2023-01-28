@@ -78,6 +78,7 @@ typedef struct ObjectClosure {
 typedef struct ObjectClass {
     Object object;
     ObjectString* name;
+    Table methods;
 } ObjectClass;
 
 typedef struct ObjectInstance {

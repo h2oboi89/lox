@@ -28,6 +28,7 @@ static Object* allocateObject(size_t size, ObjectType type) {
 ObjectClass* newClass(ObjectString* name) {
     ObjectClass* loxClass = ALLOCATE_OBJECT(ObjectClass, OBJECT_CLASS);
     loxClass->name = name;
+    initTable(&loxClass->methods);
     return loxClass;
 }
 
