@@ -121,6 +121,12 @@ static void freeObject(Object* object) {
 
     switch (object->type)
     {
+    case OBJECT_BOUND_METHOD: {
+        ObjectBoundMethod* boundMethod = (ObjectBoundMethod*)object;
+        markValue(boundMethod->receiver);
+        markObject((Object*)boundMethod->method);
+        break;
+    }
     case OBJECT_CLASS: {
         ObjectClass* loxClass = (ObjectClass*)object;
         freeTable(&loxClass->methods);

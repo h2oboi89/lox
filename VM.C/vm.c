@@ -111,6 +111,10 @@ static bool callValue(Value callee, int argCount) {
     if (IS_OBJECT(callee)) {
         switch (OBJECT_TYPE(callee))
         {
+        case OBJECT_BOUND_METHOD: {
+            ObjectBoundMethod* boundMethod = AS_BOUND_METHOD(callee);
+            return call(boundMethod->method, argCount);
+        }
         case OBJECT_CLOSURE:
             return call(AS_CLOSURE(callee), argCount);
         case OBJECT_CLASS: {
@@ -131,6 +135,20 @@ static bool callValue(Value callee, int argCount) {
     }
     runtimeError("Can only call functions and classes.");
     return false;
+}
+
+static bool bindMethod(ObjectClass* loxClass, ObjectString* name) {
+    Value method;
+    if (!tableGet(&loxClass->methods, name, &method)) {
+        runtimeError("Undefined property '%s'.", name->chars);
+        return false;
+    }
+
+    ObjectBoundMethod* boundMethod = newBoundMethod(peek(0), AS_CLOSURE(method));
+
+    pop();
+    push(OBJECT_VALUE(boundMethod));
+    return true;
 }
 
 static ObjectUpValue* captureUpValue(Value* local) {
@@ -311,8 +329,9 @@ static InterpretResult run() {
                 break;
             }
 
-            runtimeError("Undefined property '%s'.", name->chars);
-            return INTERPRET_RUNTIME_ERROR;
+            if (!bindMethod(instance->loxClass, name)) {
+                return INTERPRET_RUNTIME_ERROR;
+            }
 
             break;
         }
