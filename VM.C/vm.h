@@ -23,6 +23,7 @@ typedef struct VM {
 	Value* stackTop;
 	Table globals;
 	Table strings;
+	ObjectString* initString;
 	ObjectUpValue* openUpValues;
 
 	size_t bytesAllocated;
