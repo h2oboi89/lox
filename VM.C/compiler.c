@@ -516,9 +516,11 @@ static void variable(bool canAssign) {
 }
 
 static Token syntheticToken(const char* text) {
-    Token token;
-    token.start = text;
-    token.length = (int)strlen(text);
+    Token token = {
+        .start = text,
+        .length = (int)strlen(text)
+    };
+
     return token;
 }
 
@@ -700,9 +702,10 @@ static void classDeclaration() {
     emitBytes(OP_CLASS, nameConstant);
     defineVariable(nameConstant);
 
-    ClassCompiler classCompiler;
-    classCompiler.enclosing = currentClass;
-    classCompiler.hasSuperClass = false;
+    ClassCompiler classCompiler = {
+        .enclosing = currentClass,
+        .hasSuperClass = false
+    };
     currentClass = &classCompiler;
 
     if (match(TOKEN_COLON)) {
@@ -721,7 +724,7 @@ static void classDeclaration() {
         emitByte(OP_INHERIT);
         classCompiler.hasSuperClass = true;
     }
-    
+
     namedVariable(className, false);
     consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
     while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF)) {
