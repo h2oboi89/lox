@@ -81,7 +81,7 @@ static ObjectString* allocateString(char* chars, int length, uint32_t hash) {
     string->hash = hash;
 
     push(OBJECT_VALUE(string));
-    tableSet(&vm.strings, string, NIL_VAL);
+    tableSet(&vm.strings, string, NIL_VALUE);
     pop();
 
     return string;
@@ -122,7 +122,7 @@ ObjectUpValue* newUpValue(Value* slot)
     ObjectUpValue* upValue = ALLOCATE_OBJECT(ObjectUpValue, OBJECT_UPVALUE);
     upValue->location = slot;
     upValue->next = NULL;
-    upValue->closed = NIL_VAL;
+    upValue->closed = NIL_VALUE;
     return upValue;
 }
 

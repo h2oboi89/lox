@@ -467,7 +467,7 @@ static void grouping(bool canAssign) {
 
 static void number(bool canAssign) {
     double value = strtod(parser.previous.start, NULL);
-    emitConstant(NUMBER_VAL(value));
+    emitConstant(NUMBER_VALUE(value));
 }
 
 static void or_(bool cannAssign) {
