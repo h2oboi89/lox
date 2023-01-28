@@ -151,6 +151,34 @@ static bool callValue(Value callee, int argCount) {
     return false;
 }
 
+static bool invokeFromClass(ObjectClass* loxClass, ObjectString* name, int argCount) {
+    Value method;
+    if (!tableGet(&loxClass->methods, name, &method)) {
+        runtimeError("Undefined property '%s'.", name->chars);
+        return false;
+    }
+    return call(AS_CLOSURE(method), argCount);
+}
+
+static bool invoke(ObjectString* name, int argCount) {
+    Value receiver = peek(argCount);
+
+    if (!IS_INSTANCE(receiver)) {
+        runtimeError("Only instances have methods.");
+        return false;
+    }
+
+    ObjectInstance* instance = AS_INSTANCE(receiver);
+
+    Value value;
+    if (tableGet(&instance->fields, name, &value)) {
+        vm.stackTop[-argCount - 1] = value;
+        return callValue(value, argCount);
+    }
+
+    return invokeFromClass(instance->loxClass, name, argCount);
+}
+
 static bool bindMethod(ObjectClass* loxClass, ObjectString* name) {
     Value method;
     if (!tableGet(&loxClass->methods, name, &method)) {
@@ -426,6 +454,15 @@ static InterpretResult run() {
         case OP_CALL: {
             int argCount = READ_BYTE();
             if (!callValue(peek(argCount), argCount)) {
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            frame = &vm.frames[vm.frameCount - 1];
+            break;
+        }
+        case OP_INVOKE: {
+            ObjectString* method = READ_STRING();
+            int argCount = READ_BYTE();
+            if (!invoke(method, argCount)) {
                 return INTERPRET_RUNTIME_ERROR;
             }
             frame = &vm.frames[vm.frameCount - 1];
