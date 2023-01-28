@@ -66,12 +66,16 @@ void initVM() {
     initTable(&vm.globals);
     initTable(&vm.strings);
 
+    vm.initString = NULL;
+    vm.initString = copyString("init", 4);
+
     defineNative("clock", clockNative);
 };
 
 void freeVM() {
     freeTable(&vm.globals);
     freeTable(&vm.strings);
+    vm.initString = NULL;
     freeObjects();
 };
 
@@ -111,11 +115,25 @@ static bool callValue(Value callee, int argCount) {
     if (IS_OBJECT(callee)) {
         switch (OBJECT_TYPE(callee))
         {
+        case OBJECT_BOUND_METHOD: {
+            ObjectBoundMethod* boundMethod = AS_BOUND_METHOD(callee);
+            vm.stackTop[-argCount - 1] = boundMethod->receiver;
+            return call(boundMethod->method, argCount);
+        }
         case OBJECT_CLOSURE:
             return call(AS_CLOSURE(callee), argCount);
         case OBJECT_CLASS: {
             ObjectClass* loxClass = AS_CLASS(callee);
             vm.stackTop[-argCount - 1] = OBJECT_VALUE(newInstance(loxClass));
+            Value initializer;
+            if (tableGet(&loxClass->methods, vm.initString, &initializer)) {
+                return call(AS_CLOSURE(initializer), argCount);
+            }
+            else if (argCount != 0) {
+                runtimeError("Expected 0 arguments but got %d", argCount);
+                return false;
+            }
+
             return true;
         }
         case OBJECT_NATIVE: {
@@ -131,6 +149,48 @@ static bool callValue(Value callee, int argCount) {
     }
     runtimeError("Can only call functions and classes.");
     return false;
+}
+
+static bool invokeFromClass(ObjectClass* loxClass, ObjectString* name, int argCount) {
+    Value method;
+    if (!tableGet(&loxClass->methods, name, &method)) {
+        runtimeError("Undefined property '%s'.", name->chars);
+        return false;
+    }
+    return call(AS_CLOSURE(method), argCount);
+}
+
+static bool invoke(ObjectString* name, int argCount) {
+    Value receiver = peek(argCount);
+
+    if (!IS_INSTANCE(receiver)) {
+        runtimeError("Only instances have methods.");
+        return false;
+    }
+
+    ObjectInstance* instance = AS_INSTANCE(receiver);
+
+    Value value;
+    if (tableGet(&instance->fields, name, &value)) {
+        vm.stackTop[-argCount - 1] = value;
+        return callValue(value, argCount);
+    }
+
+    return invokeFromClass(instance->loxClass, name, argCount);
+}
+
+static bool bindMethod(ObjectClass* loxClass, ObjectString* name) {
+    Value method;
+    if (!tableGet(&loxClass->methods, name, &method)) {
+        runtimeError("Undefined property '%s'.", name->chars);
+        return false;
+    }
+
+    ObjectBoundMethod* boundMethod = newBoundMethod(peek(0), AS_CLOSURE(method));
+
+    pop();
+    push(OBJECT_VALUE(boundMethod));
+    return true;
 }
 
 static ObjectUpValue* captureUpValue(Value* local) {
@@ -164,6 +224,13 @@ static void closeUpValues(Value* last) {
         upValue->location = &upValue->closed;
         vm.openUpValues = upValue->next;
     }
+}
+
+static void defineMethod(ObjectString* name) {
+    Value method = peek(0);
+    ObjectClass* loxClass = AS_CLASS(peek(1));
+    tableSet(&loxClass->methods, name, method);
+    pop();
 }
 
 static bool isFalsey(Value value) {
@@ -304,8 +371,9 @@ static InterpretResult run() {
                 break;
             }
 
-            runtimeError("Undefined property '%s'.", name->chars);
-            return INTERPRET_RUNTIME_ERROR;
+            if (!bindMethod(instance->loxClass, name)) {
+                return INTERPRET_RUNTIME_ERROR;
+            }
 
             break;
         }
@@ -391,6 +459,15 @@ static InterpretResult run() {
             frame = &vm.frames[vm.frameCount - 1];
             break;
         }
+        case OP_INVOKE: {
+            ObjectString* method = READ_STRING();
+            int argCount = READ_BYTE();
+            if (!invoke(method, argCount)) {
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            frame = &vm.frames[vm.frameCount - 1];
+            break;
+        }
 
         case OP_CLOSURE: {
             ObjectFunction* function = AS_FUNCTION(READ_CONSTANT());
@@ -431,6 +508,10 @@ static InterpretResult run() {
         }
         case OP_CLASS: {
             push(OBJECT_VALUE(newClass(READ_STRING())));
+            break;
+        }
+        case OP_METHOD: {
+            defineMethod(READ_STRING());
             break;
         }
         }

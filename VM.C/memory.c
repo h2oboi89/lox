@@ -81,6 +81,7 @@ static void blackenObject(Object* object) {
     case OBJECT_CLASS: {
         ObjectClass* loxClass = (ObjectClass*)object;
         markObject((Object*)loxClass->name);
+        markTable(&loxClass->methods);
         break;
     }
     case OBJECT_CLOSURE: {
@@ -120,7 +121,15 @@ static void freeObject(Object* object) {
 
     switch (object->type)
     {
+    case OBJECT_BOUND_METHOD: {
+        ObjectBoundMethod* boundMethod = (ObjectBoundMethod*)object;
+        markValue(boundMethod->receiver);
+        markObject((Object*)boundMethod->method);
+        break;
+    }
     case OBJECT_CLASS: {
+        ObjectClass* loxClass = (ObjectClass*)object;
+        freeTable(&loxClass->methods);
         FREE(ObjectClass, object);
         break;
     }
@@ -174,6 +183,7 @@ static void markRoots() {
 
     markTable(&vm.globals);
     markCompilerRoots();
+    markObject((Object*)vm.initString);
 }
 
 static void traceReferences() {
