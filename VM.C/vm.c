@@ -13,7 +13,7 @@
 VM vm;
 
 static Value clockNative(int argCount, Value* args) {
-    return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
+    return NUMBER_VALUE((double)clock() / CLOCKS_PER_SEC);
 }
 
 static void resetStack() {
@@ -304,9 +304,9 @@ static InterpretResult run() {
             push(constant);
             break;
         }
-        case OP_NIL: push(NIL_VAL); break;
-        case OP_TRUE: push(BOOL_VAL(true)); break;
-        case OP_FALSE: push(BOOL_VAL(false)); break;
+        case OP_NIL: push(NIL_VALUE); break;
+        case OP_TRUE: push(BOOL_VALUE(true)); break;
+        case OP_FALSE: push(BOOL_VALUE(false)); break;
 
         case OP_POP: pop(); break;
 
@@ -403,11 +403,11 @@ static InterpretResult run() {
         case OP_EQUAL: {
             Value b = pop();
             Value a = pop();
-            push(BOOL_VAL(valuesEqual(a, b)));
+            push(BOOL_VALUE(valuesEqual(a, b)));
             break;
         }
-        case OP_GREATER:    BINARY_OP(BOOL_VAL, > ); break;
-        case OP_LESS:       BINARY_OP(BOOL_VAL, < ); break;
+        case OP_GREATER:    BINARY_OP(BOOL_VALUE, > ); break;
+        case OP_LESS:       BINARY_OP(BOOL_VALUE, < ); break;
         case OP_ADD: {
             if (IS_STRING(peek(0)) && IS_STRING(peek(1))) {
                 concatenate();
@@ -415,7 +415,7 @@ static InterpretResult run() {
             else if (IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) {
                 double b = AS_NUMBER(pop());
                 double a = AS_NUMBER(pop());
-                push(NUMBER_VAL(a + b));
+                push(NUMBER_VALUE(a + b));
             }
             else {
                 runtimeError("Operands must be two numbers or two strings.");
@@ -423,19 +423,19 @@ static InterpretResult run() {
             }
             break;
         }
-        case OP_SUBTRACT:	BINARY_OP(NUMBER_VAL, -); break;
-        case OP_MULTIPLY:	BINARY_OP(NUMBER_VAL, *); break;
-        case OP_DIVIDE:		BINARY_OP(NUMBER_VAL, / ); break;
+        case OP_SUBTRACT:	BINARY_OP(NUMBER_VALUE, -); break;
+        case OP_MULTIPLY:	BINARY_OP(NUMBER_VALUE, *); break;
+        case OP_DIVIDE:		BINARY_OP(NUMBER_VALUE, / ); break;
 
         case OP_NOT:
-            push(BOOL_VAL(isFalsey(pop())));
+            push(BOOL_VALUE(isFalsey(pop())));
             break;
         case OP_NEGATE:
             if (!IS_NUMBER(peek(0))) {
                 runtimeError("Operand must be a number.");
                 return INTERPRET_RUNTIME_ERROR;
             }
-            push(NUMBER_VAL(-AS_NUMBER(pop())));
+            push(NUMBER_VALUE(-AS_NUMBER(pop())));
             break;
 
         case OP_PRINT: {

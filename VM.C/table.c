@@ -56,7 +56,7 @@ static void adjustCapacity(Table* table, int capacity) {
     Entry* entries = ALLOCATE(Entry, capacity);
     for (int i = 0; i < capacity; i++) {
         entries[i].key = NULL;
-        entries[i].value = NIL_VAL;
+        entries[i].value = NIL_VALUE;
     }
 
     table->count = 0;
@@ -99,7 +99,7 @@ bool tableDelete(Table* table, ObjectString* key)
     if (entry->key == NULL) return false;
 
     entry->key = NULL;
-    entry->value = BOOL_VAL(true);
+    entry->value = BOOL_VALUE(true);
     return false;
 }
 
